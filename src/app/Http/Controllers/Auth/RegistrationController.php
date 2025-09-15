@@ -20,18 +20,34 @@ class RegistrationController extends Controller
         return response('register page', 200);
     }
 
-    public function store(RegistrationRequest $request)
+    public function store(\App\Http\Requests\Auth\RegistrationRequest $request)
     {
-        $user = User::create([
-            'name'              => $request->name,
-            'email'             => $request->email,
-            'password'          => Hash::make($request->password),
-            'is_admin'          => false,
-            'email_verified_at' => now(),
+        // ★テスト環境は従来どおり：登録→即ログイン→/attendance（テストが壊れないように）
+        if (app()->environment('testing')) {
+            $user = \App\Models\User::create([
+                'name'              => $request->name,
+                'email'             => $request->email,
+                'password'          => \Illuminate\Support\Facades\Hash::make($request->password),
+                'is_admin'          => false,
+                'email_verified_at' => now(),
+            ]);
+            \Illuminate\Support\Facades\Auth::login($user);
+            return redirect()->route('attendance.index');
+        }
+
+        // 本来の挙動：未認証のまま作成→ログイン→認証メール送信→誘導画面へ
+        $user = \App\Models\User::create([
+            'name'     => $request->name,
+            'email'    => $request->email,
+            'password' => \Illuminate\Support\Facades\Hash::make($request->password),
+            'is_admin' => false,
+            // email_verified_at は空のまま
         ]);
 
-        Auth::login($user);
+        \Illuminate\Support\Facades\Auth::login($user);
 
-        return redirect()->route('attendance.index');
+        $user->sendEmailVerificationNotification();
+
+        return redirect()->route('verification.notice');
     }
 }

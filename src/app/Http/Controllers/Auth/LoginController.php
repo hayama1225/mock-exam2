@@ -18,18 +18,25 @@ class LoginController extends Controller
         return response('login page', 200);
     }
 
-    public function store(LoginRequest $request)
+    public function store(\App\Http\Requests\Auth\LoginRequest $request)
     {
         $credentials = $request->only('email', 'password');
 
-        if (Auth::attempt($credentials, $request->boolean('remember'))) {
+        if (\Illuminate\Support\Facades\Auth::attempt($credentials, $request->boolean('remember'))) {
             $request->session()->regenerate();
 
-            // ログイン後 → 打刻画面へ
+            $user = \Illuminate\Support\Facades\Auth::user();
+
+            if (!$user->hasVerifiedEmail()) {
+                // 未認証なら再送して誘導
+                $user->sendEmailVerificationNotification();
+                return redirect()->route('verification.notice')
+                    ->with('status', 'verification-link-sent');
+            }
+
             return redirect()->route('attendance.index');
         }
 
-        // 認証失敗時
         return back()->withErrors([
             'email' => 'ログイン情報が登録されていません',
         ])->onlyInput('email');
