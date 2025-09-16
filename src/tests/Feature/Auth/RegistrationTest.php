@@ -4,6 +4,8 @@ namespace Tests\Feature\Auth;
 
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
+use Illuminate\Support\Facades\Notification;
+use Illuminate\Auth\Notifications\VerifyEmail;
 
 
 class RegistrationTest extends TestCase
@@ -65,5 +67,25 @@ class RegistrationTest extends TestCase
             'name'  => '山田太郎',
         ]);
         $this->assertAuthenticated();
+    }
+
+    /** @test */
+    public function 会員登録直後に認証メールが送信される()
+    {
+        Notification::fake();
+
+        $resp = $this->post('/register', [
+            'name'                  => 'new user',
+            'email'                 => 'new@example.com',
+            'password'              => 'password123',
+            'password_confirmation' => 'password123',
+        ]);
+
+        $resp->assertRedirect(); // 登録後にどこかへリダイレクト（既存の挙動でOK）
+        $user = \App\Models\User::where('email', 'new@example.com')->first();
+        $this->assertNotNull($user);
+
+        // 認証メールが送られたことを検証
+        Notification::assertSentTo($user, VerifyEmail::class);
     }
 }
