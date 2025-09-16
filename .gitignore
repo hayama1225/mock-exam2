@@ -15,7 +15,6 @@ yarn-error.log*
 
 # Env
 .env
-.env.*      # .env.testing なども除外（例外にしたいなら行を消す）
 !.env.example
 
 # Storage & cache
@@ -34,3 +33,7 @@ yarn-error.log*
 # Misc
 *.swp
 *.swo
+
+# ignore local env files
+src/.env
+src/.env.testing
