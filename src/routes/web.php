@@ -35,9 +35,6 @@ Route::middleware('auth')->group(function () {
     })->middleware('throttle:6,1')->name('verification.send');
 });
 
-// 打刻画面（今は誰でも見られるプレースホルダのまま）
-Route::view('/attendance', 'attendance.index')->name('attendance.index');
-
 // ログアウト（一般ユーザー）
 Route::post('/logout', [LoginController::class, 'destroy'])
     ->middleware('auth')
@@ -47,5 +44,22 @@ Route::middleware(['auth'])->group(function () {
     // Attendance routes start
     Route::get('/attendance', [AttendanceController::class, 'index'])->name('attendance.index');
     Route::post('/attendance', [AttendanceController::class, 'store'])->name('attendance.store');
+
+    // 一覧・詳細
+    Route::get('/attendance/list', [AttendanceController::class, 'list'])->name('attendance.list');
+    Route::get('/attendance/detail/{attendance}', [AttendanceController::class, 'detail'])
+        ->whereNumber('attendance')
+        ->name('attendance.detail');
     // Attendance routes end
+
+    Route::post(
+        '/attendance/detail/{attendance}/request',
+        [AttendanceController::class, 'requestCorrection']
+    )->name('attendance.request');
+
+    // 申請一覧・詳細（一般ユーザー）
+    Route::get('/requests', [AttendanceController::class, 'requestsIndex'])->name('requests.index');
+    Route::get('/requests/{correction}', [AttendanceController::class, 'requestsShow'])
+        ->whereNumber('correction')
+        ->name('requests.show');
 });

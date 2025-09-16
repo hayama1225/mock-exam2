@@ -9,6 +9,8 @@
 
 <body>
     @yield('content')
+    <a href="{{ route('requests.index') }}">申請</a>
+
     @auth
     <form method="POST" action="{{ route('logout') }}" style="display:inline">
         @csrf

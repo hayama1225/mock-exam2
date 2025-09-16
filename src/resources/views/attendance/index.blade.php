@@ -4,6 +4,10 @@
 <div class="container" style="max-width:760px;">
     <h1 class="mb-4">勤怠打刻</h1>
 
+    <div class="mb-3">
+        <a href="{{ route('attendance.list') }}" class="btn btn-outline-secondary btn-sm">勤怠一覧</a>
+    </div>
+
     @if (session('success'))
     <div class="alert alert-success">{{ session('success') }}</div>
     @endif

@@ -3,9 +3,12 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 
 class Attendance extends Model
 {
+    use HasFactory;
+
     public $timestamps = false;
 
     protected $fillable = [
@@ -14,6 +17,8 @@ class Attendance extends Model
         'clock_in_at',
         'clock_out_at',
         'status',
+        'total_break_seconds',
+        'work_seconds',
     ];
 
     protected $casts = [
