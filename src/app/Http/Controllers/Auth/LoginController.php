@@ -41,4 +41,15 @@ class LoginController extends Controller
             'email' => 'ログイン情報が登録されていません',
         ])->onlyInput('email');
     }
+
+    public function destroy(\Illuminate\Http\Request $request)
+    {
+        \Illuminate\Support\Facades\Auth::guard('web')->logout();
+
+        $request->session()->invalidate();
+        $request->session()->regenerateToken();
+
+        // ログアウト後はログイン画面へ
+        return redirect()->route('login');
+    }
 }

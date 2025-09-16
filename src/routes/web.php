@@ -36,3 +36,8 @@ Route::middleware('auth')->group(function () {
 
 // 打刻画面（今は誰でも見られるプレースホルダのまま）
 Route::view('/attendance', 'attendance.index')->name('attendance.index');
+
+// ログアウト（一般ユーザー）
+Route::post('/logout', [LoginController::class, 'destroy'])
+    ->middleware('auth')
+    ->name('logout');

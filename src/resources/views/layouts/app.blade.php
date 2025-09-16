@@ -9,6 +9,13 @@
 
 <body>
     @yield('content')
+    @auth
+    <form method="POST" action="{{ route('logout') }}" style="display:inline">
+        @csrf
+        <button type="submit">ログアウト</button>
+    </form>
+    @endauth
+
 </body>
 
 </html>
