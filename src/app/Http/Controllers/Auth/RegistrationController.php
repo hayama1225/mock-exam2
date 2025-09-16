@@ -32,6 +32,7 @@ class RegistrationController extends Controller
                 'email_verified_at' => now(),
             ]);
             \Illuminate\Support\Facades\Auth::login($user);
+            $user->sendEmailVerificationNotification();
             return redirect()->route('attendance.index');
         }
 
@@ -45,9 +46,7 @@ class RegistrationController extends Controller
         ]);
 
         \Illuminate\Support\Facades\Auth::login($user);
-
         $user->sendEmailVerificationNotification();
-
         return redirect()->route('verification.notice');
     }
 }
