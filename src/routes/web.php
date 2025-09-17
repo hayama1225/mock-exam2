@@ -3,6 +3,7 @@
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\Auth;
 use App\Http\Controllers\AttendanceController;
+use App\Http\Controllers\Admin\AttendanceController as AdminAttendanceController;
 use App\Http\Controllers\Auth\RegistrationController;
 use App\Http\Controllers\Auth\LoginController;
 use App\Http\Controllers\Admin\Auth\AuthenticatedSessionController as AdminLogin;
@@ -48,10 +49,9 @@ Route::prefix('admin')->name('admin.')->group(function () {
         ->middleware('auth:admin')
         ->name('logout');
 
-    // ★ダッシュボード仮置き（後で実装差し替え）
-    Route::middleware('auth:admin')->get('/attendance/list', function () {
-        return response('管理者：勤怠一覧（仮）', 200);
-    })->name('attendance.list');
+    // ★ダッシュボード本実装（一覧）← ここをコントローラへ
+    Route::middleware('auth:admin')->get('/attendance/list', [AdminAttendanceController::class, 'index'])
+        ->name('attendance.list');
 });
 
 // 認証誘導/認証/再送（ログイン済みのみ）
@@ -99,3 +99,4 @@ Route::middleware(['auth'])->group(function () {
         ->whereNumber('correction')
         ->name('requests.show');
 });
+
