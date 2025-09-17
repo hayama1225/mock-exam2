@@ -8,6 +8,7 @@ use App\Models\Attendance;
 use App\Models\AttendanceBreak;
 use Carbon\Carbon;
 use App\Http\Requests\Admin\Attendance\UpdateAttendanceRequest;
+use App\Models\User;
 
 class AttendanceController extends Controller
 {
@@ -126,5 +127,132 @@ class AttendanceController extends Controller
         return redirect()
             ->route('admin.attendance.show', ['attendance' => $attendance->id]) // ← 明示的にIDで渡す
             ->with('status', '勤怠を修正しました');
+    }
+
+    /**
+     * スタッフ別 月次勤怠一覧
+     * 画面要件: FN043（一覧）/FN044（前月・翌月切替）/FN046（詳細遷移）
+     */
+    public function staffMonthly(Request $request, int $user)
+    {
+        $tz = 'Asia/Tokyo';
+
+        // 対象スタッフ
+        $staff = User::select('id', 'name', 'email')->findOrFail($user);
+
+        // ?month=YYYY-MM（不正は当月にフォールバック）
+        $month = (string)$request->query('month', '');
+        try {
+            $cursor = $month
+                ? Carbon::createFromFormat('Y-m', $month, $tz)->startOfMonth()
+                : Carbon::now($tz)->startOfMonth();
+        } catch (\Throwable $e) {
+            $cursor = Carbon::now($tz)->startOfMonth();
+        }
+
+        $start = $cursor->copy()->startOfMonth();
+        $end   = $cursor->copy()->endOfMonth();
+        $prevMonth = $start->copy()->subMonth()->format('Y-m');
+        $nextMonth = $start->copy()->addMonth()->format('Y-m');
+
+        // 当該スタッフの当月勤怠を取得し、日付キーで引けるように
+        $attendances = Attendance::with(['breaks'])
+            ->where('user_id', $staff->id)
+            ->whereBetween('work_date', [$start->toDateString(), $end->toDateString()])
+            ->orderBy('work_date')
+            ->get()
+            ->keyBy('work_date'); // 'YYYY-MM-DD' => Attendance
+
+        // 1日〜末日までの行データ
+        $days = [];
+        $c = $start->copy();
+        while ($c->lte($end)) {
+            $key = $c->toDateString(); // YYYY-MM-DD
+            $days[] = [
+                'date' => $c->copy(),
+                'attendance' => $attendances->get($key),
+            ];
+            $c->addDay();
+        }
+
+        return view('admin.attendance.staff', [
+            'staff'     => $staff,
+            'start'     => $start,      // Carbon（1日）
+            'prevMonth' => $prevMonth,  // 'YYYY-MM'
+            'nextMonth' => $nextMonth,  // 'YYYY-MM'
+            'days'      => $days,       // 各行: ['date'=>Carbon, 'attendance'=>Attendance|null]
+        ]);
+    }
+
+    /**
+     * CSV出力（FN045）
+     * クエリ ?month=YYYY-MM を解釈し、対象月の当該スタッフ勤怠をCSVで返す
+     */
+    public function staffMonthlyCsv(Request $request, int $user)
+    {
+        $tz = 'Asia/Tokyo';
+        $staff = User::select('id', 'name', 'email')->findOrFail($user);
+
+        $month = (string)$request->query('month', '');
+        try {
+            $cursor = $month
+                ? Carbon::createFromFormat('Y-m', $month, $tz)->startOfMonth()
+                : Carbon::now($tz)->startOfMonth();
+        } catch (\Throwable $e) {
+            $cursor = Carbon::now($tz)->startOfMonth();
+        }
+
+        $start = $cursor->copy()->startOfMonth();
+        $end   = $cursor->copy()->endOfMonth();
+
+        $records = Attendance::where('user_id', $staff->id)
+            ->whereBetween('work_date', [$start->toDateString(), $end->toDateString()])
+            ->orderBy('work_date')
+            ->get();
+
+        $filename = sprintf('attendance_%s_%s.csv', $staff->id, $start->format('Y-m'));
+
+        return response()->streamDownload(function () use ($records, $staff) {
+            $out = fopen('php://output', 'w');
+
+            // 出力時にUTF-8→SJIS変換するヘルパ
+            $fput = function ($row) use ($out) {
+                fputcsv($out, array_map(function ($v) {
+                    return mb_convert_encoding($v ?? '', 'SJIS-win', 'UTF-8');
+                }, $row));
+            };
+
+            // ヘッダ
+            $fput(['スタッフ名', $staff->name]);
+            $fput(['メール', $staff->email]);
+            $fput([]);
+            $fput(['日付', '出勤', '退勤', '休憩(H:MM)', '実働(H:MM)', '詳細ID']);
+
+            foreach ($records as $a) {
+                $fput([
+                    $a->work_date,
+                    optional($a->clock_in_at)->format('H:i'),
+                    optional($a->clock_out_at)->format('H:i'),
+                    $this->secondsToHm($a->total_break_seconds),
+                    $this->secondsToHm($a->work_seconds),
+                    $a->id,
+                ]);
+            }
+
+            fclose($out);
+        }, $filename, [
+            'Content-Type' => 'text/csv; charset=Shift_JIS',
+        ]);
+    }
+
+    /**
+     * 秒数を H:MM 形式に変換する
+     */
+    private function secondsToHm(?int $seconds): string
+    {
+        $s = (int) max(0, $seconds ?? 0);
+        $h = intdiv($s, 3600);
+        $m = intdiv($s % 3600, 60);
+        return sprintf('%d:%02d', $h, $m);
     }
 }

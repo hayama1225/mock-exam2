@@ -2,11 +2,12 @@
 
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\Auth;
-use App\Http\Controllers\AttendanceController;
-use App\Http\Controllers\Admin\AttendanceController as AdminAttendanceController;
+use App\Http\Controllers\AttendanceController; // 一般ユーザー用
+use App\Http\Controllers\Admin\AttendanceController as AdminAttendanceController; // 管理者用
 use App\Http\Controllers\Auth\RegistrationController;
 use App\Http\Controllers\Auth\LoginController;
 use App\Http\Controllers\Admin\Auth\AuthenticatedSessionController as AdminLogin;
+use App\Http\Controllers\Admin\StaffController;
 use Illuminate\Foundation\Auth\EmailVerificationRequest;
 use Illuminate\Http\Request;
 
@@ -49,11 +50,11 @@ Route::prefix('admin')->name('admin.')->group(function () {
         ->middleware('auth:admin')
         ->name('logout');
 
-    // ★ダッシュボード本実装（一覧）← ここをコントローラへ
+    // ★ダッシュボード本実装（一覧）
     Route::middleware('auth:admin')->get('/attendance/list', [AdminAttendanceController::class, 'index'])
         ->name('attendance.list');
 
-    // 勤怠詳細（表示・更新）
+    // 勤怠詳細（表示・更新）＋ スタッフ一覧／スタッフ別月次勤怠
     Route::middleware('auth:admin')->group(function () {
         Route::get('/attendance/{attendance}', [AdminAttendanceController::class, 'show'])
             ->whereNumber('attendance')
@@ -62,6 +63,20 @@ Route::prefix('admin')->name('admin.')->group(function () {
         Route::put('/attendance/{attendance}', [AdminAttendanceController::class, 'update'])
             ->whereNumber('attendance')
             ->name('attendance.update');
+
+        // スタッフ一覧
+        Route::get('/staff/list', [StaffController::class, 'index'])
+            ->name('staff.list');
+
+        // スタッフ別 月次勤怠一覧（管理者）
+        Route::get('/attendance/staff/{user}', [AdminAttendanceController::class, 'staffMonthly'])
+            ->whereNumber('user')
+            ->name('attendance.staff');
+
+        // CSV出力（スタッフ別 月次勤怠）
+        Route::get('/attendance/staff/{user}/csv', [AdminAttendanceController::class, 'staffMonthlyCsv'])
+            ->whereNumber('user')
+            ->name('attendance.staff.csv');
     });
 });
 
