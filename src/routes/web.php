@@ -52,6 +52,17 @@ Route::prefix('admin')->name('admin.')->group(function () {
     // ★ダッシュボード本実装（一覧）← ここをコントローラへ
     Route::middleware('auth:admin')->get('/attendance/list', [AdminAttendanceController::class, 'index'])
         ->name('attendance.list');
+
+    // 勤怠詳細（表示・更新）
+    Route::middleware('auth:admin')->group(function () {
+        Route::get('/attendance/{attendance}', [AdminAttendanceController::class, 'show'])
+            ->whereNumber('attendance')
+            ->name('attendance.show');
+
+        Route::put('/attendance/{attendance}', [AdminAttendanceController::class, 'update'])
+            ->whereNumber('attendance')
+            ->name('attendance.update');
+    });
 });
 
 // 認証誘導/認証/再送（ログイン済みのみ）

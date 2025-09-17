@@ -51,7 +51,11 @@ return sprintf('%d:%02d', $h, $m);
             <tbody>
                 @forelse ($attendances as $a)
                 <tr>
-                    <td style="padding:10px;border-bottom:1px solid #f2f2f2;">{{ \Carbon\Carbon::parse($a->work_date)->format('Y/m/d') }}</td>
+                    <td style="padding:10px;border-bottom:1px solid #f2f2f2;">
+                        <a href="{{ route('admin.attendance.show', $a) }}" style="text-decoration:underline;">
+                            {{ \Carbon\Carbon::parse($a->work_date)->format('Y/m/d') }}
+                        </a>
+                    </td>
                     <td style="padding:10px;border-bottom:1px solid #f2f2f2;">{{ optional($a->user)->name ?? '-' }}</td>
                     <td style="padding:10px;border-bottom:1px solid #f2f2f2;">{{ optional($a->user)->email ?? '-' }}</td>
                     <td style="padding:10px;border-bottom:1px solid #f2f2f2;">{{ $a->clock_in_at ? \Carbon\Carbon::parse($a->clock_in_at)->format('H:i') : '-' }}</td>
