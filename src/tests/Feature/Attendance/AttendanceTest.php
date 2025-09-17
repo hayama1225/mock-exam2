@@ -21,7 +21,8 @@ class AttendanceTest extends TestCase
         Carbon::setTestNow(Carbon::create(2025, 9, 16, 9, 0, 0, $this->tz)); // 09:00 固定
     }
 
-    public function test_index_shows_not_working_before_clock_in()
+    /** @test */
+    public function 出勤前は勤務外と表示される()
     {
         $user = User::factory()->create();
         $this->actingAs($user)
@@ -30,7 +31,8 @@ class AttendanceTest extends TestCase
             ->assertSee('勤務外');
     }
 
-    public function test_user_can_clock_in_once_per_day()
+    /** @test */
+    public function 一日に一回だけ出勤できる()
     {
         $user = User::factory()->create();
 
@@ -52,7 +54,8 @@ class AttendanceTest extends TestCase
         $this->assertNull($att->clock_out_at);
     }
 
-    public function test_breaks_can_start_and_end_multiple_times()
+    /** @test */
+    public function 休憩は複数回開始終了できる()
     {
         $user = User::factory()->create();
 
@@ -73,7 +76,8 @@ class AttendanceTest extends TestCase
         $this->assertEquals(2, AttendanceBreak::count());
     }
 
-    public function test_cannot_clock_out_during_open_break()
+    /** @test */
+    public function 休憩中は退勤できない()
     {
         $user = User::factory()->create();
 
@@ -91,7 +95,8 @@ class AttendanceTest extends TestCase
         $this->assertNull($att->clock_out_at);
     }
 
-    public function test_clock_out_sets_work_seconds_minus_total_break()
+    /** @test */
+    public function 退勤時に勤務秒は総休憩秒を差し引いて計算される()
     {
         $user = User::factory()->create();
 
@@ -116,7 +121,8 @@ class AttendanceTest extends TestCase
         $this->assertSame(30600, (int)$att->work_seconds);
     }
 
-    public function test_after_clock_out_buttons_are_hidden_on_index()
+    /** @test */
+    public function 退勤後は打刻ボタンが非表示になる()
     {
         $user = User::factory()->create();
 

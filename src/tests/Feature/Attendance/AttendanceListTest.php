@@ -15,7 +15,8 @@ class AttendanceListTest extends TestCase
 
     private string $tz = 'Asia/Tokyo';
 
-    public function test_list_shows_current_month_by_default()
+    /** @test */
+    public function デフォルトで当月を表示する()
     {
         Carbon::setTestNow(Carbon::create(2025, 9, 16, 9, 0, 0, $this->tz));
         $user = User::factory()->create();
@@ -41,7 +42,8 @@ class AttendanceListTest extends TestCase
             ->assertSee('8:00'); // 合計
     }
 
-    public function test_list_prev_and_next_month_navigation()
+    /** @test */
+    public function 前月翌月に移動できる()
     {
         Carbon::setTestNow(Carbon::create(2025, 9, 1, 9, 0, 0, $this->tz));
         $user = User::factory()->create();
@@ -57,7 +59,8 @@ class AttendanceListTest extends TestCase
             ->assertSee('2025/10');
     }
 
-    public function test_detail_page_is_accessible_from_list_and_shows_breaks()
+    /** @test */
+    public function 一覧から詳細に遷移でき休憩を表示する()
     {
         Carbon::setTestNow(Carbon::create(2025, 9, 16, 9, 0, 0, $this->tz));
         $user = User::factory()->create();
@@ -86,7 +89,8 @@ class AttendanceListTest extends TestCase
             ->assertSee('12:30:00');
     }
 
-    public function test_cannot_view_others_attendance_detail()
+    /** @test */
+    public function 他人の勤怠詳細は見られない()
     {
         $u1 = User::factory()->create();
         $u2 = User::factory()->create();

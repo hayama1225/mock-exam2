@@ -51,6 +51,10 @@ $fmtDateMD = \Carbon\Carbon::parse($attendance->work_date)->format('n月j日');
                     <td style="padding:12px;border-bottom:1px solid #eee;">{{ $attendance->user->name ?? '-' }}</td>
                 </tr>
                 <tr>
+                    <th style="background:#fafafa;padding:12px;border-bottom:1px solid #eee;text-align:left;">メール</th>
+                    <td style="padding:12px;border-bottom:1px solid #eee;">{{ $attendance->user->email ?? '-' }}</td>
+                </tr>
+                <tr>
                     <th style="background:#fafafa;padding:12px;border-bottom:1px solid #eee;text-align:left;">日付</th>
                     <td style="padding:12px;border-bottom:1px solid #eee;">{{ $fmtDateY }}　<strong>{{ $fmtDateMD }}</strong></td>
                 </tr>
@@ -90,8 +94,7 @@ $fmtDateMD = \Carbon\Carbon::parse($attendance->work_date)->format('n月j日');
                 <tr>
                     <th style="background:#fafafa;padding:12px;border-bottom:1px solid #eee;text-align:left;">備考</th>
                     <td style="padding:12px;border-bottom:1px solid #eee;">
-                        <textarea name="note" rows="3" style="width:100%;padding:8px;border:1px solid #ccc;border-radius:6px;">{{ old('note') }}</textarea>
-                        <div style="color:#777;margin-top:6px;font-size:12px;">※ 現状は表示のみ（保存は未対応）。後続でDBカラム追加予定。</div>
+                        <textarea name="note" rows="3" style="width:100%;padding:8px;border:1px solid #ccc;border-radius:6px;">{{ old('note', $attendance->note) }}</textarea>
                     </td>
                 </tr>
             </tbody>

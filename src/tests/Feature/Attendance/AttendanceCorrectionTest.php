@@ -22,7 +22,8 @@ class AttendanceCorrectionTest extends TestCase
         ]);
     }
 
-    public function test_note_is_required_message()
+    /** @test */
+    public function メモは必須_未入力でエラーメッセージが出る()
     {
         $user = User::factory()->create();
         $a = $this->seedAttendance($user);
@@ -37,7 +38,8 @@ class AttendanceCorrectionTest extends TestCase
             ])->assertSessionHasErrors(['note' => '備考を記入してください']);
     }
 
-    public function test_clock_in_after_out_message()
+    /** @test */
+    public function 退勤後に出勤はできない_エラーメッセージ()
     {
         $user = User::factory()->create();
         $a = $this->seedAttendance($user);
@@ -51,7 +53,8 @@ class AttendanceCorrectionTest extends TestCase
             ->assertSessionHasErrors(['out' => '出勤時間もしくは退勤時間が不適切な値です']);
     }
 
-    public function test_break_start_before_in_or_after_out_message()
+    /** @test */
+    public function 休憩開始は出勤後かつ退勤前でなければならない()
     {
         $user = User::factory()->create();
         $a = $this->seedAttendance($user);
@@ -67,7 +70,8 @@ class AttendanceCorrectionTest extends TestCase
             ])->assertSessionHasErrors(['b1s' => '休憩時間が不適切な値です']);
     }
 
-    public function test_break_end_after_out_message()
+    /** @test */
+    public function 休憩終了は退勤後にできない_エラーメッセージ()
     {
         $user = User::factory()->create();
         $a = $this->seedAttendance($user);
@@ -82,7 +86,8 @@ class AttendanceCorrectionTest extends TestCase
             ])->assertSessionHasErrors(['b1e' => '休憩時間もしくは退勤時間が不適切な値です']);
     }
 
-    public function test_pending_blocks_editing()
+    /** @test */
+    public function 承認待ちの申請は編集できない()
     {
         $user = User::factory()->create();
         $a = $this->seedAttendance($user);

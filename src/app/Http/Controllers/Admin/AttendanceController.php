@@ -93,15 +93,6 @@ class AttendanceController extends Controller
             })
             ->values();
 
-        // 追加の整合チェック：各休憩は出勤以降・退勤以前
-        foreach ($breaksInput as $b) {
-            if ($b['start']->lessThan($in) || $b['end']->greaterThan($out)) {
-                return back()
-                    ->withErrors(['breaks' => '休憩時間が不適切な値です'])
-                    ->withInput();
-            }
-        }
-
         // 休憩合計秒
         $totalBreakSeconds = $breaksInput->reduce(function ($carry, $b) {
             return $carry + $b['end']->diffInSeconds($b['start']);
@@ -117,6 +108,7 @@ class AttendanceController extends Controller
             'status'              => 1,
             'total_break_seconds' => $totalBreakSeconds,
             'work_seconds'        => $workSeconds,
+            'note'                => $request->input('note'),
         ]);
 
         // 既存休憩は一旦削除して登録し直す（少数なので単純化）
@@ -132,7 +124,7 @@ class AttendanceController extends Controller
         // 備考は今回は未保存（DBにカラムが無いため）。後続でカラム追加予定。
 
         return redirect()
-            ->route('admin.attendance.show', $attendance)
+            ->route('admin.attendance.show', ['attendance' => $attendance->id]) // ← 明示的にIDで渡す
             ->with('status', '勤怠を修正しました');
     }
 }

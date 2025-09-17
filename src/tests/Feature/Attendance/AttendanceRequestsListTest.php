@@ -12,7 +12,8 @@ class AttendanceRequestsListTest extends TestCase
 {
     use RefreshDatabase;
 
-    public function test_requests_index_shows_pending_and_approved_tabs()
+    /** @test */
+    public function 申請一覧は承認待ち承認済みタブを表示する()
     {
         $user = User::factory()->create();
 
@@ -41,7 +42,8 @@ class AttendanceRequestsListTest extends TestCase
             ->assertSee('私用');
     }
 
-    public function test_requests_detail_is_owned_only()
+    /** @test */
+    public function 申請詳細は本人のみ閲覧できる()
     {
         $u1 = User::factory()->create();
         $u2 = User::factory()->create();
@@ -53,7 +55,8 @@ class AttendanceRequestsListTest extends TestCase
             ->assertForbidden();
     }
 
-    public function test_requests_detail_shows_fields()
+    /** @test */
+    public function 申請詳細は必要な項目が表示される()
     {
         $u = User::factory()->create();
         $a = Attendance::factory()->create(['user_id' => $u->id, 'work_date' => '2025-09-12']);

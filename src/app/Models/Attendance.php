@@ -19,6 +19,7 @@ class Attendance extends Model
         'status',
         'total_break_seconds',
         'work_seconds',
+        'note',
     ];
 
     protected $casts = [
