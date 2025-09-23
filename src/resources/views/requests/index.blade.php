@@ -1,80 +1,121 @@
 @extends('layouts.app')
 
+@section('title', '申請一覧')
+
+@push('styles')
+<link rel="stylesheet" href="{{ asset('css/requests-list.css') }}">
+@endpush
+
 @section('content')
-<div class="container" style="max-width:1000px;">
-    <h1 class="mb-4">申請一覧</h1>
+@php
+$userName = auth()->user()->name ?? '';
+@endphp
 
-    <ul class="nav nav-tabs mb-3">
-        <li class="nav-item"><a class="nav-link active" data-bs-toggle="tab" href="#pending">承認待ち</a></li>
-        <li class="nav-item"><a class="nav-link" data-bs-toggle="tab" href="#approved">承認済み</a></li>
-    </ul>
-
-    <div class="tab-content">
-        <div class="tab-pane fade show active" id="pending">
-            <div class="card">
-                <div class="table-responsive">
-                    <table class="table table-sm mb-0 align-middle">
-                        <thead class="table-light">
-                            <tr>
-                                <th>状態</th>
-                                <th>対象日</th>
-                                <th>申請理由</th>
-                                <th>申請日時</th>
-                                <th>詳細</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            @forelse($pending as $r)
-                            <tr>
-                                <td>承認待ち</td>
-                                <td>{{ \Carbon\Carbon::parse($r->work_date)->format('Y/m/d') }}</td>
-                                <td>{{ $r->note }}</td>
-                                <td>{{ $r->created_at?->setTimezone('Asia/Tokyo')->format('Y/m/d') }}</td>
-                                <td><a href="{{ route('requests.show',$r->id) }}" class="btn btn-link btn-sm p-0">詳細</a></td>
-                            </tr>
-                            @empty
-                            <tr>
-                                <td colspan="5" class="text-muted">承認待ちの申請はありません。</td>
-                            </tr>
-                            @endforelse
-                        </tbody>
-                    </table>
-                </div>
-            </div>
-        </div>
-
-        <div class="tab-pane fade" id="approved">
-            <div class="card">
-                <div class="table-responsive">
-                    <table class="table table-sm mb-0 align-middle">
-                        <thead class="table-light">
-                            <tr>
-                                <th>状態</th>
-                                <th>対象日</th>
-                                <th>申請理由</th>
-                                <th>申請日時</th>
-                                <th>詳細</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            @forelse($approved as $r)
-                            <tr>
-                                <td>承認済み</td>
-                                <td>{{ \Carbon\Carbon::parse($r->work_date)->format('Y/m/d') }}</td>
-                                <td>{{ $r->note }}</td>
-                                <td>{{ $r->created_at?->setTimezone('Asia/Tokyo')->format('Y/m/d') }}</td>
-                                <td><a href="{{ route('requests.show',$r->id) }}" class="btn btn-link btn-sm p-0">詳細</a></td>
-                            </tr>
-                            @empty
-                            <tr>
-                                <td colspan="5" class="text-muted">承認済みの申請はありません。</td>
-                            </tr>
-                            @endforelse
-                        </tbody>
-                    </table>
-                </div>
-            </div>
-        </div>
+<main class="main list-main">
+    {{-- タイトル行（黒い縦線＋見出し） --}}
+    <div class="list-heading">
+        <span class="vbar" aria-hidden="true"></span>
+        <h1 class="list-title">申請一覧</h1>
     </div>
-</div>
+
+    {{-- タブ（承認待ち / 承認済み） --}}
+    <div class="req-tabs" role="tablist" aria-label="申請の状態で絞り込み">
+        <a href="#pending" class="tab-link" id="tab-pending" role="tab" aria-controls="pane-pending">承認待ち</a>
+        <a href="#approved" class="tab-link" id="tab-approved" role="tab" aria-controls="pane-approved">承認済み</a>
+    </div>
+
+    {{-- 下線（900px / 1px） --}}
+    <hr class="req-hr">
+
+    {{-- ===== 承認待ち ===== --}}
+    <section id="pending" class="req-pane" role="tabpanel" aria-labelledby="tab-pending">
+        <div class="list-card">
+            <table class="att-table" aria-label="承認待ちの申請一覧">
+                <thead>
+                    <tr>
+                        <th class="col-state">状態</th>
+                        <th class="col-name">名前</th>
+                        <th class="col-date">対象日時</th>
+                        <th class="col-reason">申請理由</th>
+                        <th class="col-created">申請日時</th>
+                        <th class="col-detail">詳細</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @forelse ($pending as $r)
+                    <tr>
+                        <td>承認待ち</td>
+                        <td>{{ $userName }}</td>
+                        <td>{{ \Carbon\Carbon::parse($r->work_date)->format('Y/m/d') }}</td>
+                        <td>{{ $r->note }}</td>
+                        <td>{{ optional($r->created_at)->setTimezone('Asia/Tokyo')?->format('Y/m/d') }}</td>
+                        <td class="col-detail">
+                            <a href="{{ route('requests.show', $r->id) }}" class="detail-link">詳細</a>
+                        </td>
+                    </tr>
+                    @empty
+                    <tr>
+                        <td colspan="6" class="empty">承認待ちの申請はありません。</td>
+                    </tr>
+                    @endforelse
+                </tbody>
+            </table>
+        </div>
+    </section>
+
+    {{-- ===== 承認済み ===== --}}
+    <section id="approved" class="req-pane" role="tabpanel" aria-labelledby="tab-approved">
+        <div class="list-card">
+            <table class="att-table" aria-label="承認済みの申請一覧">
+                <thead>
+                    <tr>
+                        <th class="col-state">状態</th>
+                        <th class="col-name">名前</th>
+                        <th class="col-date">対象日時</th>
+                        <th class="col-reason">申請理由</th>
+                        <th class="col-created">申請日時</th>
+                        <th class="col-detail">詳細</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @forelse ($approved as $r)
+                    <tr>
+                        <td>承認済み</td>
+                        <td>{{ $userName }}</td>
+                        <td>{{ \Carbon\Carbon::parse($r->work_date)->format('Y/m/d') }}</td>
+                        <td>{{ $r->note }}</td>
+                        <td>{{ optional($r->created_at)->setTimezone('Asia/Tokyo')?->format('Y/m/d') }}</td>
+                        <td class="col-detail">
+                            <a href="{{ route('requests.show', $r->id) }}" class="detail-link">詳細</a>
+                        </td>
+                    </tr>
+                    @empty
+                    <tr>
+                        <td colspan="6" class="empty">承認済みの申請はありません。</td>
+                    </tr>
+                    @endforelse
+                </tbody>
+            </table>
+        </div>
+    </section>
+</main>
+
+{{-- タブ切り替え：#pending / #approved で表示を制御、選択中はBold --}}
+<script>
+    document.addEventListener('DOMContentLoaded', () => {
+        const tabs = document.querySelectorAll('.tab-link');
+        const panes = document.querySelectorAll('.req-pane');
+
+        function apply() {
+            const hash = (location.hash || '#pending');
+            tabs.forEach(a => a.classList.toggle('is-active', a.getAttribute('href') === hash));
+            panes.forEach(p => p.classList.toggle('is-active', '#' + p.id === hash));
+        }
+
+        window.addEventListener('hashchange', apply, {
+            passive: true
+        });
+        apply(); // 初期表示
+    });
+</script>
 @endsection

@@ -1,68 +1,97 @@
 @extends('layouts.app')
 
+@section('title', '勤怠一覧')
+
+@push('styles')
+<link rel="stylesheet" href="{{ asset('css/attendance-list.css') }}">
+@endpush
+
 @section('content')
-<div class="container" style="max-width:1000px;">
-    <h1 class="mb-4">勤怠一覧</h1>
+@php
+// 表示用：YYYY/MM と、フォーム用：YYYY-MM
+$ymRaw = isset($ym) ? $ym : \Carbon\Carbon::now('Asia/Tokyo')->format('Y-m');
+$ymDisp = str_replace('-', '/', $ymRaw);
 
-    <div class="d-flex align-items-center gap-3 mb-3">
-        <a class="btn btn-outline-secondary" href="{{ route('attendance.list', ['ym' => $prevYm]) }}">« 前月</a>
-        <div class="h5 mb-0">
-            {{ \Carbon\Carbon::createFromFormat('Y-m-d', $ym.'-01', $tz)->format('Y/m') }}
-        </div>
-        <a class="btn btn-outline-secondary" href="{{ route('attendance.list', ['ym' => $nextYm]) }}">翌月 »</a>
-        <div class="ms-auto">
-            <a class="btn btn-outline-primary" href="{{ route('attendance.index') }}">打刻画面へ</a>
-        </div>
-    </div>
+// 秒→H:MM
+$toHm = function (?int $sec): string {
+$sec = (int)($sec ?? 0);
+if ($sec <= 0) return '' ;
+    $h=intdiv($sec, 3600);
+    $m=intdiv($sec % 3600, 60);
+    return sprintf('%d:%02d', $h, $m);
+    };
+    // dt→H:i
+    $toHi=function ($dt, $tz='Asia/Tokyo' ): string {
+    if (!$dt) return '' ;
+    return \Carbon\Carbon::parse($dt)->setTimezone($tz)->format('H:i');
+    };
+    @endphp
 
-    <div class="card">
-        <div class="table-responsive">
-            <table class="table table-sm mb-0 align-middle">
-                <thead class="table-light">
+    <main class="main list-main">
+        {{-- タイトル行 --}}
+        <div class="list-heading">
+            <span class="vbar" aria-hidden="true"></span>
+            <h1 class="list-title">勤怠一覧</h1>
+        </div>
+
+        {{-- ページネーション＋カレンダー枠 --}}
+        <div class="list-nav">
+            <a class="nav-btn nav-prev" href="{{ route('attendance.list', ['ym' => $prevYm]) }}">
+                <img class="nav-arrow" src="{{ asset('img.png') }}" alt="" aria-hidden="true">
+                <span>前月</span>
+            </a>
+
+            {{-- ★中央：テキスト上に透明の month 入力を重ね、JSで showPicker() も叩く --}}
+            <div class="nav-current" aria-label="表示月">
+                <span class="ico-calendar" aria-hidden="true"></span>
+                <label class="nav-ym-wrap" id="ymWrap">
+                    <span class="nav-ym"> {{ $ymDisp }} </span>
+                    <input type="month" id="ymInput" name="ym" value="{{ $ymRaw }}" aria-label="月を選択">
+                </label>
+            </div>
+
+            <a class="nav-btn nav-next" href="{{ route('attendance.list', ['ym' => $nextYm]) }}">
+                <span>翌月</span>
+                <img class="nav-arrow rot" src="{{ asset('img.png') }}" alt="" aria-hidden="true">
+            </a>
+        </div>
+
+        {{-- 一覧カード --}}
+        <div class="list-card">
+            <table class="att-table" aria-label="勤怠一覧">
+                <thead>
                     <tr>
-                        <th style="width:140px;">日付</th>
-                        <th style="width:140px;">出勤</th>
-                        <th style="width:140px;">退勤</th>
-                        <th style="width:140px;">休憩</th>
-                        <th style="width:140px;">合計</th>
-                        <th style="width:100px;">詳細</th>
+                        <th class="col-date">日付</th>
+                        <th>出勤</th>
+                        <th>退勤</th>
+                        <th>休憩</th>
+                        <th>合計</th>
+                        <th class="col-detail">詳細</th>
                     </tr>
                 </thead>
                 <tbody>
-                    @foreach($days as $row)
+                    @foreach ($days as $row)
                     @php
-                    $a = $row['attendance'] ?? null;
+                    /** @var \Carbon\Carbon $date */
                     $date = $row['date'];
+                    $att = $row['attendance'] ?? null;
+
+                    $in = $att ? $toHi($att->clock_in_at, $tz) : '';
+                    $out = $att ? $toHi($att->clock_out_at, $tz) : '';
+                    $brk = $att ? $toHm($att->total_break_seconds) : '';
+                    $work = $att ? $toHm($att->work_seconds) : '';
                     @endphp
                     <tr>
-                        <td>{{ $date->format('m/d(D)') }}</td>
-                        <td>
-                            @if($a && $a->clock_in_at)
-                            {{ \Carbon\Carbon::parse($a->clock_in_at)->setTimezone($tz)->format('H:i') }}
-                            @endif
-                        </td>
-                        <td>
-                            @if($a && $a->clock_out_at)
-                            {{ \Carbon\Carbon::parse($a->clock_out_at)->setTimezone($tz)->format('H:i') }}
-                            @endif
-                        </td>
-                        <td>
-                            @if($a)
-                            {{-- total_break_seconds を H:MM 表示 --}}
-                            {{ sprintf('%d:%02d', intdiv((int)$a->total_break_seconds,3600), intdiv(((int)$a->total_break_seconds)%3600,60)) }}
-                            @endif
-                        </td>
-                        <td>
-                            @if($a)
-                            {{-- work_seconds を H:MM 表示 --}}
-                            {{ sprintf('%d:%02d', intdiv((int)$a->work_seconds,3600), intdiv(((int)$a->work_seconds)%3600,60)) }}
-                            @endif
-                        </td>
-                        <td>
-                            @if($a)
-                            <a href="{{ route('attendance.detail', ['attendance' => $a->id]) }}" class="btn btn-link btn-sm p-0">詳細</a>
+                        <td class="col-date">{{ $date->locale('ja')->isoFormat('MM/DD(dd)') }}</td>
+                        <td>{{ $in }}</td>
+                        <td>{{ $out }}</td>
+                        <td>{{ $brk }}</td>
+                        <td>{{ $work }}</td>
+                        <td class="col-detail">
+                            @if ($att)
+                            <a href="{{ route('attendance.detail', ['attendance' => $att->id]) }}" class="detail-link">詳細</a>
                             @else
-                            <span class="text-muted">—</span>
+                            <span class="detail-link disabled">詳細</span>
                             @endif
                         </td>
                     </tr>
@@ -70,6 +99,35 @@
                 </tbody>
             </table>
         </div>
-    </div>
-</div>
-@endsection
+    </main>
+
+    {{-- JS：クリック→ showPicker / 変更→遷移 --}}
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const wrap = document.getElementById('ymWrap');
+            const inp = document.getElementById('ymInput');
+
+            // ラベル（テキスト）クリックでも確実に month ピッカーを開く
+            wrap.addEventListener('click', function(e) {
+                // input が前面にあるが、念のため showPicker を叩く
+                if (typeof inp.showPicker === 'function') {
+                    try {
+                        inp.showPicker();
+                        return;
+                    } catch (_) {}
+                }
+                // フォールバック：クリック（focusだけのブラウザ向け）
+                inp.click();
+                inp.focus();
+            });
+
+            // 月が変わったら /attendance/list?ym=YYYY-MM へ
+            inp.addEventListener('change', function() {
+                if (!inp.value) return;
+                const url = new URL("{{ route('attendance.list') }}", window.location.origin);
+                url.searchParams.set('ym', inp.value);
+                window.location.href = url.toString();
+            });
+        });
+    </script>
+    @endsection

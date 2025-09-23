@@ -1,37 +1,6 @@
-/* 共通: フォント/レイアウト基準 */
-:root {
-    --black: #000000;
-    --blue: #0073CC;
-    --error: #d12a2a;
-}
-
-html,
-body {
-    margin: 0;
-    padding: 0;
-}
-
-body {
-    /* Inter優先。未導入環境でも崩れにくい和文フォールバックを指定 */
-    font-family: "Inter", system-ui, -apple-system, "Segoe UI", Roboto,
-        "Noto Sans JP", "Hiragino Kaku Gothic ProN", "Meiryo", sans-serif;
-    color: #000;
-    background: #fff;
-    line-height: 1.5;
-    letter-spacing: 0;
-}
-
-/* PC(1400–1540)帯で崩れないよう、最大幅をデザイン基準(1512px)に */
-.main {
-    max-width: 1512px;
-    margin: 0 auto;
-    padding: 0 24px;
-    /* 端でのつぶれ防止 */
-}
-
-/* ヘッダー（要件: 黒 80px） */
+/* ===== Header（1512x80, 黒） ===== */
 .site-header {
-    background: var(--black);
+    background: #000;
     height: 80px;
 }
 
@@ -39,9 +8,13 @@ body {
     max-width: 1512px;
     height: 80px;
     margin: 0 auto;
+    padding: 0 24px;
+    box-sizing: border-box;
     display: flex;
     align-items: center;
-    padding: 0 24px;
+    justify-content: space-between;
+    color: #fff;
+    /* ヘッダー内のデフォルト文字色は白 */
 }
 
 .site-header__logo {
@@ -51,55 +24,38 @@ body {
     display: block;
 }
 
-/* 共通フォーム系 */
-.form-group {
-    margin: 0 0 24px;
+/* 右ナビ */
+.site-header__nav {
+    display: flex;
+    align-items: center;
+    gap: 24px;
 }
 
-.form-label {
-    display: block;
-    font-weight: 700;
-    /* Bold */
-    font-size: 24px;
-    /* 要件 */
-    line-height: 1;
-    /* 100% */
-    margin: 0 0 12px;
-}
-
-.input-text {
-    width: 100%;
-    height: 60px;
-    /* 要件 */
-    border: 1px solid #000000;
-    /* 要件 */
-    border-radius: 4px;
-    /* 要件 */
-    padding: 0 16px;
-    box-sizing: border-box;
-    font-size: 16px;
-    outline: none;
-    background: #fff;
-}
-
-.input-text:focus {
-    outline: 2px solid rgba(0, 0, 0, .25);
-    outline-offset: 0;
-}
-
-.form-error {
-    color: var(--error);
-    font-size: 14px;
-    margin-top: 8px;
-}
-
-/* アンカーの共通（必要最低限） */
-a {
-    color: inherit;
+.site-header__navLink {
+    color: #fff;
     text-decoration: none;
+    font-weight: 700;
+    font-size: 16px;
+    letter-spacing: 0.15em;
+    line-height: 1;
 }
 
-a:focus,
-a:hover {
+.site-header__navLink:hover {
     text-decoration: underline;
+}
+
+.site-header__navLink.is-current {
+    text-decoration: underline;
+}
+
+/* ログアウト（formボタン） */
+.site-header__logoutForm {
+    display: inline;
+}
+
+.site-header__logoutBtn {
+    background: none;
+    border: none;
+    padding: 0;
+    cursor: pointer;
 }

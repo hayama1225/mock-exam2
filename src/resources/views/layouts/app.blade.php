@@ -12,21 +12,24 @@
 
 <body>
     <header class="site-header">
-        <div class="site-header__inner" style="display:flex;align-items:center;justify-content:space-between;">
-            <a href="{{ url('/') }}" class="site-header__logoLink" aria-label="Home" style="display:inline-flex;align-items:center;">
-                <img src="{{ asset('logo.svg') }}" alt="Logo" class="site-header__logo">
+        <div class="site-header__inner">
+            <a href="{{ url('/') }}" class="site-header__logoLink" aria-label="Home">
+                <img src="{{ asset('logo.svg') }}" alt="COACHTECH" class="site-header__logo">
             </a>
 
             {{-- 右側アクション（ログイン/登録/メール認証誘導では非表示にする） --}}
             @if (empty($hideHeaderActions))
             @auth
-            <nav class="site-header__nav" style="display:flex;gap:16px;align-items:center;">
-                <a href="{{ route('attendance.index') }}">勤怠</a>
-                <a href="{{ route('attendance.list') }}">勤怠一覧</a>
-                <a href="{{ route('requests.index') }}">申請</a>
-                <form method="POST" action="{{ route('logout') }}" style="display:inline;">
+            <nav class="site-header__nav" aria-label="主ナビゲーション">
+                <a href="{{ route('attendance.index') }}"
+                    class="site-header__navLink {{ request()->routeIs('attendance.index') ? 'is-current' : '' }}">勤怠</a>
+                <a href="{{ route('attendance.list') }}"
+                    class="site-header__navLink {{ request()->routeIs('attendance.list') ? 'is-current' : '' }}">勤怠一覧</a>
+                <a href="{{ route('requests.index') }}"
+                    class="site-header__navLink {{ request()->routeIs('requests.*') ? 'is-current' : '' }}">申請</a>
+                <form method="POST" action="{{ route('logout') }}" class="site-header__logoutForm">
                     @csrf
-                    <button type="submit" style="background:none;border:none;color:#fff;cursor:pointer;">ログアウト</button>
+                    <button type="submit" class="site-header__navLink site-header__logoutBtn">ログアウト</button>
                 </form>
             </nav>
             @endauth

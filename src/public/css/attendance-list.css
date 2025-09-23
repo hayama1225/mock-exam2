@@ -1,0 +1,198 @@
+/* 勤怠一覧（一般ユーザー） */
+
+.list-main {
+    min-height: calc(100vh - 80px);
+    background: #EFEFF1;
+    padding-bottom: 64px;
+}
+
+/* タイトル行 */
+.list-heading {
+    max-width: 1512px;
+    margin: 60px auto 24px;
+    padding: 0 24px;
+    display: flex;
+    align-items: center;
+    gap: 21px;
+    /* 黒い線→タイトルの間隔（327-306=21px） */
+}
+
+.vbar {
+    width: 8px;
+    height: 40px;
+    background: #000;
+    border-radius: 4px;
+    display: inline-block;
+}
+
+.list-title {
+    margin: 0;
+    font-weight: 700;
+    font-size: 30px;
+    line-height: 1;
+    color: #000;
+}
+
+/* ページネーション＋カレンダー枠（900x60 白 丸10px） */
+.list-nav {
+    width: 900px;
+    height: 60px;
+    margin: 0 auto 24px;
+    background: #fff;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 24px;
+    box-sizing: border-box;
+}
+
+/* 前月・翌月（#737373 / 16px Bold / 文字間15%） */
+.nav-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    color: #737373;
+    font-weight: 700;
+    font-size: 16px;
+    letter-spacing: 0.15em;
+    text-decoration: none;
+}
+
+.nav-arrow {
+    width: 20px;
+    height: 15px;
+    opacity: .3;
+    display: block;
+}
+
+.nav-arrow.rot {
+    transform: rotate(180deg);
+}
+
+/* 中央のカレンダー（クリック可能） */
+.nav-current {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    gap: 12px;
+    cursor: pointer;
+}
+
+.nav-ym-btn {
+    background: none;
+    border: none;
+    padding: 0;
+    margin: 0;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+}
+
+.nav-ym {
+    /* テキストは下層 */
+    position: relative;
+    z-index: 1;
+}
+
+.nav-current:hover .nav-ym {
+    text-decoration: underline;
+}
+
+/* 見た目は nav-ym（YYYY/MM）、その上に month 入力を透明で重ねる */
+.nav-ym-wrap {
+    position: relative;
+    display: inline-block;
+    padding: 2px 4px;
+    /* クリック当たり判定を少し広げる */
+}
+
+#ymInput {
+    /* 入力は前面で全面オーバーレイ */
+    position: absolute;
+    inset: 0;
+    /* 覆いかぶせる */
+    width: 100%;
+    height: 100%;
+    opacity: 0;
+    /* 完全透明 */
+    cursor: pointer;
+    border: 0;
+    background: transparent;
+    z-index: 2;
+}
+
+/* シンプルなカレンダーアイコン（黒） */
+.ico-calendar {
+    width: 24px;
+    height: 24px;
+    display: inline-block;
+    background-repeat: no-repeat;
+    background-position: center;
+    background-size: contain;
+    background-image: url("data:image/svg+xml;utf8,\
+  <svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23000' stroke-width='2'>\
+    <rect x='3' y='4' width='18' height='17' rx='2' ry='2'/>\
+    <line x1='8' y1='2' x2='8' y2='6'/>\
+    <line x1='16' y1='2' x2='16' y2='6'/>\
+    <line x1='3' y1='10' x2='21' y2='10'/>\
+  </svg>");
+}
+
+/* 一覧カード（900px 白 丸10px） */
+.list-card {
+    width: 900px;
+    margin: 0 auto;
+    background: #fff;
+    border-radius: 10px;
+    padding: 12px 0;
+    box-sizing: border-box;
+}
+
+/* テーブル */
+.att-table {
+    width: 100%;
+    border-collapse: separate;
+    border-spacing: 0;
+    table-layout: fixed;
+    font-size: 16px;
+    color: #000;
+}
+
+.att-table thead th {
+    height: 31px;
+    color: #737373;
+    font-weight: 700;
+    text-align: left;
+    padding: 0 20px;
+}
+
+.att-table tbody td {
+    height: 33px;
+    border-top: 1px solid #E1E1E1;
+    padding: 0 20px;
+    vertical-align: middle;
+}
+
+/* 列幅 */
+.col-date {
+    width: 24%;
+}
+
+.col-detail {
+    width: 12%;
+    text-align: right;
+}
+
+/* 詳細リンク（#000） */
+.detail-link {
+    color: #000;
+    text-decoration: underline;
+    font-weight: 700;
+}
+
+.detail-link.disabled {
+    opacity: .35;
+    pointer-events: none;
+    text-decoration: none;
+}

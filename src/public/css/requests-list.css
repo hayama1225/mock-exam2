@@ -1,0 +1,177 @@
+/* 申請一覧（一般ユーザー） */
+
+.list-main {
+    /* ヘッダー直下も #EFEFF1 に見えるよう余白はパディングで確保 */
+    min-height: calc(100vh - 80px);
+    background: #EFEFF1;
+    padding: 60px 0 64px;
+}
+
+/* タイトル（黒い縦線＋見出し） */
+.list-heading {
+    max-width: 1512px;
+    margin: 0 auto 24px;
+    padding: 0 24px;
+    display: flex;
+    align-items: center;
+    gap: 21px;
+}
+
+.vbar {
+    width: 8px;
+    height: 40px;
+    background: #000;
+    border-radius: 4px;
+    display: inline-block;
+}
+
+.list-title {
+    margin: 0;
+    font-weight: 700;
+    font-size: 30px;
+    line-height: 1;
+    color: #000;
+}
+
+/* タブ */
+.req-tabs {
+    width: 900px;
+    margin: 0 auto;
+    display: flex;
+    align-items: center;
+    gap: 48px;
+    padding: 0 4px;
+    box-sizing: border-box;
+}
+
+.tab-link {
+    color: #000;
+    text-decoration: none;
+    font-size: 16px;
+    letter-spacing: .15em;
+    font-weight: 400;
+}
+
+.tab-link:hover {
+    text-decoration: underline;
+}
+
+.tab-link.is-active {
+    font-weight: 700;
+}
+
+/* 下線（900px, 1px） */
+.req-hr {
+    width: 900px;
+    margin: 8px auto 16px;
+    border: 0;
+    border-top: 1px solid #000;
+}
+
+/* ペイン切替 */
+.req-pane {
+    display: none;
+}
+
+.req-pane.is-active {
+    display: block;
+}
+
+/* 一覧カード（900px 白 丸10px） */
+.list-card {
+    width: 900px;
+    margin: 0 auto;
+    background: #fff;
+    border-radius: 10px;
+    padding: 12px 0;
+    box-sizing: border-box;
+    border: 1px solid #E1E1E1;
+}
+
+/* テーブル（全列：ヘッダー/本文とも左寄せ） */
+.att-table {
+    width: 100%;
+    border-collapse: separate;
+    border-spacing: 0;
+    table-layout: fixed;
+    font-size: 16px;
+    color: #000;
+}
+
+.att-table thead th {
+    height: 31px;
+    color: #737373;
+    font-weight: 700;
+    text-align: left;
+    padding: 0 20px;
+}
+
+.att-table tbody td {
+    height: 33px;
+    border-top: 1px solid #E1E1E1;
+    padding: 0 20px;
+    vertical-align: middle;
+    text-align: left;
+}
+
+.empty {
+    color: #737373;
+    text-align: center;
+    padding: 12px 0;
+}
+
+/* 列幅（左から: 状態, 名前, 対象日時, 申請理由, 申請日時, 詳細） */
+.col-state {
+    width: 12%;
+}
+
+.col-name {
+    width: 18%;
+}
+
+.col-date {
+    width: 18%;
+}
+
+.col-reason {
+    width: 30%;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.col-created {
+    width: 14%;
+}
+
+/* 詳細列は 35px 固定。文字折返し防止して左寄せのまま */
+.col-detail {
+    width: 35px;
+    text-align: left;
+    white-space: nowrap;
+}
+
+/* 詳細リンク（#000） */
+.detail-link {
+    color: #000;
+    text-decoration: underline;
+    font-weight: 700;
+    display: inline-block;
+}
+
+.detail-link.disabled {
+    opacity: .35;
+    pointer-events: none;
+    text-decoration: none;
+}
+
+/* ヘッダーの「状態」だけ中央寄せ */
+.att-table thead th.col-state {
+    text-align: center;
+}
+
+/* 空行メッセージを中央寄せ */
+.att-table tbody td.empty {
+    text-align: center !important;
+    padding: 16px 0;
+}
