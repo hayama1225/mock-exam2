@@ -1,0 +1,99 @@
+/* 勤怠登録 共通 */
+
+.attendance-main {
+    min-height: calc(100vh - 80px);
+    background: #EFEFF1;
+}
+
+.attendance {
+    max-width: 1512px;
+    margin: 0 auto;
+    text-align: center;
+    padding-top: 120px;
+    /* ヘッダー下の余白（全状態で共通） */
+}
+
+/* 100x40 / 丸 / 背景 #C8C8C8 / 文字 #696969 / 18px 太字 文字間15% */
+.status-pill {
+    width: 100px;
+    height: 40px;
+    margin: 0 auto 32px;
+    /* ← ピル → 日付 32px */
+    background: #C8C8C8;
+    border-radius: 50px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 700;
+    font-size: 18px;
+    line-height: 1;
+    letter-spacing: 0.15em;
+    color: #696969;
+}
+
+/* 日付：40px Regular */
+.att-date {
+    font-weight: 400;
+    font-size: 40px;
+    line-height: 1;
+    margin: 0 0 32px;
+    /* ← 日付 → 時刻 32px */
+    color: #000;
+}
+
+/* 時刻：80px Bold */
+.att-time {
+    font-weight: 700;
+    font-size: 80px;
+    line-height: 1;
+    margin: 0 0 102px;
+    /* ← 時刻 → 次要素 102px（ボタン or メッセージ） */
+    color: #000;
+}
+
+/* ボタン2つ横並び時の間隔 */
+.action-row {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 60px;
+}
+
+/* ボタン単体中央 */
+.action-single {
+    display: flex;
+    justify-content: center;
+}
+
+/* 共通ボタン：221x77 / 角20 / 32px 太字 / 文字間15% */
+.btn {
+    width: 221px;
+    height: 77px;
+    border-radius: 20px;
+    border: 1px solid #000;
+    font-weight: 700;
+    font-size: 32px;
+    line-height: 1;
+    letter-spacing: 0.15em;
+    cursor: pointer;
+}
+
+.btn-solid {
+    background: #000;
+    color: #fff;
+}
+
+.btn-outline {
+    background: #fff;
+    color: #000;
+}
+
+/* 退勤後メッセージ：26px Bold / 文字間15%（時刻の 102px で間を確保するので margin-top 0） */
+.thanks-message {
+    margin-top: 0;
+    font-weight: 700;
+    font-size: 26px;
+    line-height: 1;
+    letter-spacing: 0.15em;
+    color: #000;
+}

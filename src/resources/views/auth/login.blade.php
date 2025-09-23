@@ -1,40 +1,47 @@
 @extends('layouts.app')
 
+@php($hideHeaderActions = true)
+
+@section('title', 'ログイン')
+
+@push('styles')
+<link rel="stylesheet" href="{{ asset('css/login.css') }}">
+@endpush
+
 @section('content')
-<div class="container mx-auto max-w-md py-8">
-    <h1 class="text-2xl font-bold mb-6 text-center">ログイン</h1>
+<main class="main">
+    <div class="login-wrap">
+        <h1 class="login-title">ログイン</h1>
 
-    <form method="POST" action="{{ route('login.store') }}" novalidate>
-        @csrf
+        <form method="POST" action="{{ route('login.store') }}" novalidate class="login-form">
+            @csrf
 
-        {{-- メールアドレス --}}
-        <div class="mb-4">
-            <label class="block mb-2">メールアドレス</label>
-            <input type="email" name="email" value="{{ old('email') }}" class="w-full border rounded p-2">
-            @error('email')
-            <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
-            @enderror
-        </div>
+            {{-- メールアドレス --}}
+            <div class="form-group">
+                <label for="email" class="form-label">メールアドレス</label>
+                <input id="email" type="email" name="email" value="{{ old('email') }}" class="input-text">
+                @error('email')
+                <p class="form-error">{{ $message }}</p>
+                @enderror
+            </div>
 
-        {{-- パスワード --}}
-        <div class="mb-6">
-            <label class="block mb-2">パスワード</label>
-            <input type="password" name="password" class="w-full border rounded p-2">
-            @error('password')
-            <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
-            @enderror
-        </div>
+            {{-- パスワード --}}
+            <div class="form-group">
+                <label for="password" class="form-label">パスワード</label>
+                <input id="password" type="password" name="password" class="input-text">
+                @error('password')
+                <p class="form-error">{{ $message }}</p>
+                @enderror
+            </div>
 
-        {{-- ログインボタン --}}
-        <button type="submit" class="w-full bg-black text-white py-2 rounded">
-            ログイン
-        </button>
-    </form>
+            {{-- ログインボタンのみ（申請ボタンは出しません） --}}
+            <button type="submit" class="submit-btn">ログイン</button>
+        </form>
 
-    {{-- 会員登録への導線 --}}
-    <p class="mt-4 text-center">
-        アカウントをお持ちでない方は
-        <a href="{{ route('register') }}" class="text-blue-600 underline">こちら</a>から会員登録
-    </p>
-</div>
+        {{-- 会員登録への導線 --}}
+        <p class="register-link">
+            <a href="{{ route('register') }}">会員登録はこちら</a>
+        </p>
+    </div>
+</main>
 @endsection

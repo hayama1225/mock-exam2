@@ -1,0 +1,61 @@
+.verify-wrap {
+    width: 720px;
+    /* 指定幅 */
+    margin: 140px auto 0;
+    text-align: center;
+}
+
+.verify-lead {
+    font-weight: 700;
+    /* Bold */
+    font-size: 24px;
+    /* 要件 */
+    line-height: 1;
+    /* 100% */
+    margin: 0 0 40px;
+}
+
+/* 「認証はこちらから」ボタン（指定：#D9D9D9 / 257x69 / 角10 / 枠1px黒） */
+.verify-action {
+    margin: 0 0 28px;
+}
+
+.verify-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 257px;
+    height: 69px;
+    background: #D9D9D9;
+    border: 1px solid #000000;
+    border-radius: 10px;
+    font-weight: 700;
+    font-size: 24px;
+    line-height: 1;
+    color: #000;
+    text-decoration: none;
+}
+
+/* フラッシュメッセージ */
+.verify-flash {
+    color: #1a7f37;
+    /* 緑系 */
+    margin: 12px 0 0;
+}
+
+/* 再送はPOSTのまま“アンカー風”表示（要件：20px/#0073CC/中央/下線） */
+.verify-resend {
+    margin-top: 22px;
+}
+
+.verify-resend__link {
+    background: none;
+    border: none;
+    padding: 0;
+    font: inherit;
+    color: #0073CC;
+    font-size: 20px;
+    line-height: 1;
+    text-decoration: underline;
+    cursor: pointer;
+}
