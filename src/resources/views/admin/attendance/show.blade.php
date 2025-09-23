@@ -37,7 +37,11 @@ $fmtDateMD = \Carbon\Carbon::parse($attendance->work_date)->format('n月j日');
         @if ($next)
         <a href="{{ route('admin.attendance.show', $next) }}" style="text-decoration:none;border:1px solid #ccc;border-radius:6px;padding:6px 10px;">翌日 ▶</a>
         @endif
-        <a href="{{ route('admin.attendance.list') }}" style="margin-left:auto;text-decoration:none;border:1px solid #ccc;border-radius:6px;padding:6px 10px;">一覧へ戻る</a>
+        @php $backMonth = \Carbon\Carbon::parse($attendance->work_date)->format('Y-m'); @endphp
+        <a href="{{ route('admin.attendance.staff', ['user' => $attendance->user_id, 'month' => $backMonth]) }}"
+            style="margin-left:auto;text-decoration:none;border:1px solid #ccc;border-radius:6px;padding:6px 10px;">
+            一覧へ戻る
+        </a>
     </div>
 
     <form method="POST" action="{{ route('admin.attendance.update', $attendance) }}">

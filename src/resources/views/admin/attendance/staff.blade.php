@@ -11,15 +11,34 @@
         <div>メール　　：{{ $staff->email }}</div>
     </div>
 
-    {{-- 月移動（FN044） --}}
+    @php
+    $summary = $summary ?? ['worked_days' => 0, 'break_hm' => '0:00', 'worked_hm' => '0:00'];
+    @endphp
+
+    {{-- サマリー: 出勤日数 / 総休憩 / 総実働 --}}
+    <div class="d-flex flex-wrap gap-2 mb-3">
+        <span class="badge text-bg-secondary p-2">出勤日数：{{ $summary['worked_days'] }} 日</span>
+        <span class="badge text-bg-secondary p-2">総休憩：{{ $summary['break_hm'] }}</span>
+        <span class="badge text-bg-secondary p-2">総実働：{{ $summary['worked_hm'] }}</span>
+    </div>
+
+    {{-- 月移動（FN044）＋ 月ジャンプ --}}
     <div class="d-flex align-items-center gap-2 mb-3">
         <a class="btn btn-outline-secondary btn-sm"
             href="{{ route('admin.attendance.staff', ['user' => $staff->id, 'month' => $prevMonth]) }}">前月</a>
 
-        <div class="px-2" style="font-weight:600;">{{ $start->format('Y-m') }}</div>
+        <div class="px-2" style="font-weight:600; min-width:7rem; text-align:center;">
+            {{ $start->format('Y-m') }}
+        </div>
 
         <a class="btn btn-outline-secondary btn-sm"
             href="{{ route('admin.attendance.staff', ['user' => $staff->id, 'month' => $nextMonth]) }}">翌月</a>
+
+        {{-- 月ジャンプ --}}
+        <form class="ms-3 d-flex align-items-center" method="get" action="{{ route('admin.attendance.staff', ['user' => $staff->id]) }}">
+            <input type="month" name="month" value="{{ $start->format('Y-m') }}" class="form-control form-control-sm" style="width: 145px;">
+            <button class="btn btn-sm btn-outline-secondary ms-2">移動</button>
+        </form>
 
         {{-- CSV（FN045） --}}
         <a class="btn btn-outline-dark btn-sm ms-auto"
@@ -29,9 +48,9 @@
     </div>
 
     {{-- 一覧（FN043） --}}
-    <div class="table-responsive">
+    <div class="table-responsive" style="max-height: 70vh;">
         <table class="table table-striped align-middle">
-            <thead>
+            <thead class="table-light" style="position: sticky; top: 0; z-index: 1;">
                 <tr>
                     <th style="width:18%;">日付</th>
                     <th style="width:14%;">出勤</th>
@@ -42,10 +61,12 @@
                 </tr>
             </thead>
             <tbody>
+                @php $hasAny = false; @endphp
                 @foreach($days as $row)
                 @php
                 $a = $row['attendance'];
                 $dateStr = $row['date']->toDateString();
+                $hasAny = $hasAny || !is_null($a);
                 @endphp
                 <tr>
                     <td>{{ $dateStr }}</td>
@@ -73,6 +94,15 @@
                     </td>
                 </tr>
                 @endforeach
+
+                {{-- 空状態 --}}
+                @if(!$hasAny)
+                <tr>
+                    <td colspan="6" class="text-center text-muted py-4">
+                        この月の勤怠は登録がありません。
+                    </td>
+                </tr>
+                @endif
             </tbody>
         </table>
     </div>

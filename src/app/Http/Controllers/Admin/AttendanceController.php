@@ -155,7 +155,7 @@ class AttendanceController extends Controller
         $prevMonth = $start->copy()->subMonth()->format('Y-m');
         $nextMonth = $start->copy()->addMonth()->format('Y-m');
 
-        // 当該スタッフの当月勤怠を取得し、日付キーで引けるように
+        // 当該スタッフの当月勤怠
         $attendances = Attendance::with(['breaks'])
             ->where('user_id', $staff->id)
             ->whereBetween('work_date', [$start->toDateString(), $end->toDateString()])
@@ -167,7 +167,7 @@ class AttendanceController extends Controller
         $days = [];
         $c = $start->copy();
         while ($c->lte($end)) {
-            $key = $c->toDateString(); // YYYY-MM-DD
+            $key = $c->toDateString();
             $days[] = [
                 'date' => $c->copy(),
                 'attendance' => $attendances->get($key),
@@ -175,12 +175,23 @@ class AttendanceController extends Controller
             $c->addDay();
         }
 
+        // ▼ 追加：月サマリー
+        $workedSeconds = (int)$attendances->sum('work_seconds');
+        $breakSeconds  = (int)$attendances->sum('total_break_seconds');
+        $workedDays    = $attendances->filter(fn($a) => !empty($a->clock_in_at))->count();
+        $summary = [
+            'worked_days' => $workedDays,
+            'worked_hm'   => $this->secondsToHm($workedSeconds),
+            'break_hm'    => $this->secondsToHm($breakSeconds),
+        ];
+
         return view('admin.attendance.staff', [
             'staff'     => $staff,
-            'start'     => $start,      // Carbon（1日）
-            'prevMonth' => $prevMonth,  // 'YYYY-MM'
-            'nextMonth' => $nextMonth,  // 'YYYY-MM'
-            'days'      => $days,       // 各行: ['date'=>Carbon, 'attendance'=>Attendance|null]
+            'start'     => $start,
+            'prevMonth' => $prevMonth,
+            'nextMonth' => $nextMonth,
+            'days'      => $days,
+            'summary'   => $summary,
         ]);
     }
 
