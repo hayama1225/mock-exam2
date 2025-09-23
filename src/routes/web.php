@@ -7,6 +7,7 @@ use App\Http\Controllers\Admin\AttendanceController as AdminAttendanceController
 use App\Http\Controllers\Auth\RegistrationController;
 use App\Http\Controllers\Auth\LoginController;
 use App\Http\Controllers\Admin\Auth\AuthenticatedSessionController as AdminLogin;
+use App\Http\Controllers\Admin\CorrectionRequestController as AdminCorrectionRequestController;
 use App\Http\Controllers\Admin\StaffController;
 use Illuminate\Foundation\Auth\EmailVerificationRequest;
 use Illuminate\Http\Request;
@@ -79,6 +80,28 @@ Route::prefix('admin')->name('admin.')->group(function () {
             ->name('attendance.staff.csv');
     });
 });
+
+// ─────────────────────────────
+// 管理者：修正申請（一覧／詳細／承認）
+// ※ URLは /stamp_correction_request/...（adminプレフィックスなし）
+//    一般と同一パスだが auth:admin で区別
+// ─────────────────────────────
+Route::middleware('auth:admin')->group(function () {
+    // 承認待ち/承認済み 一覧
+    Route::get('/stamp_correction_request/list', [AdminCorrectionRequestController::class, 'index'])
+        ->name('admin.corrections.list');
+
+    // 詳細（承認画面）
+    Route::get('/stamp_correction_request/approve/{correction}', [AdminCorrectionRequestController::class, 'show'])
+        ->whereNumber('correction')
+        ->name('admin.corrections.show');
+
+    // 承認実行
+    Route::post('/stamp_correction_request/approve/{correction}', [AdminCorrectionRequestController::class, 'approve'])
+        ->whereNumber('correction')
+        ->name('admin.corrections.approve');
+});
+
 
 // 認証誘導/認証/再送（ログイン済みのみ）
 Route::middleware('auth')->group(function () {

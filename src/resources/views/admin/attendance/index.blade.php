@@ -73,7 +73,10 @@ return sprintf('%d:%02d', $h, $m);
     </div>
 
     <div style="margin-top:16px;">
-        {{ $attendances->links() }}
+        {{ $attendances
+            ->withPath(route('admin.attendance.list'))
+            ->appends(request()->query())
+            ->links() }}
     </div>
 </div>
 @endsection
