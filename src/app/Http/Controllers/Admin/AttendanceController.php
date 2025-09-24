@@ -14,37 +14,47 @@ class AttendanceController extends Controller
 {
     public function index(Request $request)
     {
-        // 月指定（YYYY-MM）。未指定は今月
-        $month = $request->string('month')->toString();
-        try {
-            $cursor = $month
-                ? Carbon::createFromFormat('Y-m', $month)->startOfMonth()
-                : Carbon::now()->startOfMonth();
-        } catch (\Throwable $e) {
-            $cursor = Carbon::now()->startOfMonth();
-        }
-        $start = $cursor->copy();
-        $end   = $cursor->copy()->endOfMonth();
+        $tz = 'Asia/Tokyo';
 
-        // キーワード（ユーザー名/メール）
+        // ① 表示基準日を決定（?date 優先、なければ ?month 月初、どちらも無ければ「今日」）
+        $month = $request->string('month')->toString();
+        $dateParam = $request->string('date')->toString();
+
+        try {
+            if ($dateParam !== '') {
+                $cursor = Carbon::createFromFormat('Y-m-d', $dateParam, $tz)->startOfDay();
+            } elseif ($month !== '') {
+                $cursor = Carbon::createFromFormat('Y-m', $month, $tz)->startOfMonth();
+            } else {
+                $cursor = Carbon::now($tz)->startOfDay();
+            }
+        } catch (\Throwable $e) {
+            $cursor = Carbon::now($tz)->startOfDay();
+        }
+
+        // ② 月情報（ビューが使うので維持）
+        $start = $cursor->copy()->startOfMonth();
+        $end   = $cursor->copy()->endOfMonth();
+        $prevMonth = $start->copy()->subMonth()->format('Y-m');
+        $nextMonth = $start->copy()->addMonth()->format('Y-m');
+
+        // ③ キーワード（ユーザー名/メール）
         $q = trim((string)$request->input('q', ''));
 
+        // ④ 一覧データは「日付で絞る」ように変更（前日/翌日で行が変わる）
         $attendances = Attendance::with(['user'])
-            ->whereBetween('work_date', [$start->toDateString(), $end->toDateString()])
+            ->whereDate('work_date', $cursor->toDateString())
             ->when($q !== '', function ($query) use ($q) {
                 $query->whereHas('user', function ($uq) use ($q) {
                     $uq->where('name', 'like', "%{$q}%")
                         ->orWhere('email', 'like', "%{$q}%");
                 });
             })
+            // 同一日付のみなので work_date の降順は実質同値だが、既存の並び順を踏襲
             ->orderByDesc('work_date')
             ->orderBy('user_id')
             ->paginate(20)
-            ->withQueryString();
-
-        // 前月/翌月
-        $prevMonth = $start->copy()->subMonth()->format('Y-m');
-        $nextMonth = $start->copy()->addMonth()->format('Y-m');
+            ->withQueryString(); // ← ?date / ?month / ?q を引き回す
 
         return view('admin.attendance.index', compact('attendances', 'start', 'prevMonth', 'nextMonth', 'q'));
     }
