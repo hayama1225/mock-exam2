@@ -28,7 +28,7 @@ if ($sec <= 0) return '' ;
     @endphp
 
     <main class="main list-main">
-        {{-- タイトル行 --}}
+        {{-- タイトル行（vbar＋タイトルを1行で。900px左端に揃え） --}}
         <div class="list-heading">
             <span class="vbar" aria-hidden="true"></span>
             <h1 class="list-title">勤怠一覧</h1>
@@ -41,11 +41,11 @@ if ($sec <= 0) return '' ;
                 <span>前月</span>
             </a>
 
-            {{-- ★中央：テキスト上に透明の month 入力を重ね、JSで showPicker() も叩く --}}
+            {{-- 中央：テキスト上に透明の month 入力を重ね、JSで showPicker() も叩く --}}
             <div class="nav-current" aria-label="表示月">
                 <span class="ico-calendar" aria-hidden="true"></span>
                 <label class="nav-ym-wrap" id="ymWrap">
-                    <span class="nav-ym"> {{ $ymDisp }} </span>
+                    <span class="nav-ym">{{ $ymDisp }}</span>
                     <input type="month" id="ymInput" name="ym" value="{{ $ymRaw }}" aria-label="月を選択">
                 </label>
             </div>
@@ -101,22 +101,20 @@ if ($sec <= 0) return '' ;
         </div>
     </main>
 
-    {{-- JS：クリック→ showPicker / 変更→遷移 --}}
+    {{-- JS：クリック→showPicker / 変更→遷移 --}}
     <script>
         document.addEventListener('DOMContentLoaded', function() {
             const wrap = document.getElementById('ymWrap');
             const inp = document.getElementById('ymInput');
 
-            // ラベル（テキスト）クリックでも確実に month ピッカーを開く
-            wrap.addEventListener('click', function(e) {
-                // input が前面にあるが、念のため showPicker を叩く
+            // ラベルクリックでも month ピッカーを開く
+            wrap.addEventListener('click', function() {
                 if (typeof inp.showPicker === 'function') {
                     try {
                         inp.showPicker();
                         return;
                     } catch (_) {}
                 }
-                // フォールバック：クリック（focusだけのブラウザ向け）
                 inp.click();
                 inp.focus();
             });

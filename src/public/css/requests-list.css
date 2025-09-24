@@ -1,5 +1,4 @@
 /* 申請一覧（一般ユーザー） */
-
 .list-main {
     /* ヘッダー直下も #EFEFF1 に見えるよう余白はパディングで確保 */
     min-height: calc(100vh - 80px);
@@ -7,11 +6,11 @@
     padding: 60px 0 64px;
 }
 
-/* タイトル（黒い縦線＋見出し） */
+/* タイトル行（900px左端に揃える：vbar＋タイトルを1行） */
 .list-heading {
-    max-width: 1512px;
-    margin: 0 auto 24px;
-    padding: 0 24px;
+    width: 900px;
+    margin: 60px auto 16px;
+    /* 勤怠一覧と同一 */
     display: flex;
     align-items: center;
     gap: 21px;
@@ -151,7 +150,7 @@
     white-space: nowrap;
 }
 
-/* 詳細リンク（#000） */
+/* 詳細リンク */
 .detail-link {
     color: #000;
     text-decoration: underline;

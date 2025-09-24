@@ -1,0 +1,162 @@
+/* ===== 勤怠詳細（一般ユーザー） ===== */
+.page-container {
+    max-width: 1512px;
+    margin: 0 auto;
+    padding: 80px 24px 80px;
+    /* ← 背景の白抜け対策は維持 */
+    background: #F1F1F3;
+}
+
+/* タイトル行：縦線＋見出しを横並び */
+.title-row {
+    display: flex;
+    align-items: center;
+    margin-left: 306px;
+}
+
+.page-stick {
+    width: 40px;
+    height: 0;
+    border: 8px solid #000;
+    transform: rotate(90deg);
+}
+
+.page-title {
+    margin: 0 0 0 12px;
+    font-family: Inter, system-ui, -apple-system, Segoe UI, Roboto, "Noto Sans JP", sans-serif;
+    font-weight: 700;
+    font-size: 30px;
+    line-height: 1;
+    color: #000;
+}
+
+/* 白いカード枠：余白と左右パディングを増量して“左上に寄る”印象を解消 */
+.detail-card {
+    width: 900px;
+    min-height: 555px;
+    margin: 24px 0 0 306px;
+    background: #FFF;
+    border-radius: 10px;
+    box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.03);
+    padding: 40px 56px;
+    /* ← 32px→56px に増量 */
+}
+
+/* 行：高さと上下パディングを拡げ、中央に揃える */
+.detail-row {
+    display: grid;
+    grid-template-columns: 170px 1fr;
+    align-items: center;
+    gap: 80px;
+    min-height: 64px;
+    padding: 22px 0;
+    border-bottom: 1px solid #F0F0F0;
+}
+
+.detail-row:last-child {
+    border-bottom: none;
+}
+
+/* 左側ラベル */
+.detail-label {
+    font-weight: 700;
+    font-size: 16px;
+    letter-spacing: .15em;
+    color: #737373;
+}
+
+/* 右側：適度な間隔で横並び。折返し時も余裕あり */
+.detail-content {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+    flex-wrap: wrap;
+}
+
+/* 入力枠 */
+.input-small {
+    width: 103px;
+    height: 28px;
+    border: 1px solid #E1E1E1;
+    border-radius: 4px;
+    padding: 2px 10px;
+    font-weight: 700;
+    font-size: 16px;
+    letter-spacing: .15em;
+    color: #000;
+    background: #FFF;
+}
+
+.input-note {
+    width: 316px;
+    height: 72px;
+    border: 1px solid #D9D9D9;
+    border-radius: 4px;
+    padding: 8px 10px;
+    font-size: 16px;
+    line-height: 1.4;
+    color: #000;
+    resize: none;
+}
+
+.tilde {
+    font-weight: 700;
+    font-size: 16px;
+    letter-spacing: .15em;
+    color: #000;
+}
+
+/* 日付（西暦・月日）に最小幅を与えて整列を安定させる */
+.date-year {
+    min-width: 72px;
+    text-align: center;
+    white-space: nowrap;
+    font-weight: 700;
+    font-size: 16px;
+    letter-spacing: .15em;
+    color: #000;
+}
+
+.date-md {
+    min-width: 80px;
+    text-align: center;
+    white-space: nowrap;
+    font-weight: 700;
+    font-size: 16px;
+    letter-spacing: .15em;
+    color: #000;
+}
+
+/* 枠外のアクション（修正ボタン） */
+.detail-actions {
+    width: 900px;
+    margin-left: 306px;
+    display: flex;
+    justify-content: flex-end;
+    margin-top: 16px;
+}
+
+.btn-fix {
+    width: 130px;
+    height: 50px;
+    border-radius: 5px;
+    background: #000;
+    color: #FFF;
+    font-weight: 700;
+    font-size: 22px;
+    letter-spacing: .15em;
+    border: none;
+    cursor: pointer;
+}
+
+/* PC 1400–1540px 微調整 */
+@media (max-width:1400px) {
+    .title-row {
+        margin-left: 276px;
+    }
+
+    .detail-card,
+    .detail-actions {
+        margin-left: 276px;
+    }
+}

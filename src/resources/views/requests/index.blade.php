@@ -3,7 +3,7 @@
 @section('title', '申請一覧')
 
 @push('styles')
-<link rel="stylesheet" href="{{ asset('css/requests-list.css') }}">
+<link rel="stylesheet" href="{{ asset('css/requests-list.css') }}?v=3">
 @endpush
 
 @section('content')
@@ -12,7 +12,7 @@ $userName = auth()->user()->name ?? '';
 @endphp
 
 <main class="main list-main">
-    {{-- タイトル行（黒い縦線＋見出し） --}}
+    {{-- タイトル行（vbar＋タイトルを1行で。900px左端に揃え） --}}
     <div class="list-heading">
         <span class="vbar" aria-hidden="true"></span>
         <h1 class="list-title">申請一覧</h1>
@@ -109,7 +109,7 @@ $userName = auth()->user()->name ?? '';
         function apply() {
             const hash = (location.hash || '#pending');
             tabs.forEach(a => a.classList.toggle('is-active', a.getAttribute('href') === hash));
-            panes.forEach(p => p.classList.toggle('is-active', '#' + p.id === hash));
+            panes.forEach(p => p.classList.toggle('is-active', ('#' + p.id) === hash));
         }
 
         window.addEventListener('hashchange', apply, {
