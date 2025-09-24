@@ -160,3 +160,21 @@
         margin-left: 276px;
     }
 }
+
+.flash {
+    width: 900px;
+    margin: 8px auto 12px;
+    padding: 10px 12px;
+    border-radius: 6px;
+    box-sizing: border-box
+}
+
+.flash-success {
+    background: #e8f5e9;
+    color: #1b5e20
+}
+
+.flash-error {
+    background: #fdecea;
+    color: #b71c1c
+}

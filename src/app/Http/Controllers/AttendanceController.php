@@ -29,7 +29,7 @@ class AttendanceController extends Controller
         return view('attendance.index', [
             'attendance' => $attendance,
             'status' => $status, // 'not_working' | 'working' | 'on_break' | 'completed'
-            'flags' => $flags,   // ['can_clock_in'=>bool, 'can_start_break'=>bool, 'can_end_break'=>bool, 'can_clock_out'=>bool]
+            'flags'  => $flags,  // ['can_clock_in'=>bool, 'can_start_break'=>bool, 'can_end_break'=>bool, 'can_clock_out'=>bool]
             'tz' => $tz,
         ]);
     }
@@ -50,7 +50,7 @@ class AttendanceController extends Controller
         return DB::transaction(function () use ($request, $today, $now) {
             $userId = Auth::id();
 
-            // その日の勤怠を取得（存在しなければ clock_in 以外は不可）
+            // その日の勤怠
             $attendance = Attendance::with(['breaks' => function ($q) {
                 $q->orderByDesc('id');
             }])->where('user_id', $userId)
@@ -75,7 +75,7 @@ class AttendanceController extends Controller
                 return back()->with('success', '出勤しました。');
             }
 
-            // 以降の操作は attendance が必須
+            // 以降の操作は勤怠必須
             if (!$attendance || !$attendance->clock_in_at) {
                 return back()->with('error', '本日はまだ出勤していません。');
             }
@@ -83,7 +83,7 @@ class AttendanceController extends Controller
                 return back()->with('error', '本日は既に退勤済みです。');
             }
 
-            // 直近の休憩レコード（未終了があればそれが open break）
+            // 休憩オープン
             $openBreak = $attendance->breaks->firstWhere('break_end_at', null);
 
             if ($action === 'start_break') {
@@ -112,7 +112,7 @@ class AttendanceController extends Controller
                 }
                 $attendance->clock_out_at = $now;
 
-                // 合計休憩秒を再計算（安全のため都度集計）
+                // 休憩合計秒
                 $totalBreak = AttendanceBreak::where('attendance_id', $attendance->id)
                     ->whereNotNull('break_start_at')
                     ->whereNotNull('break_end_at')
@@ -123,7 +123,7 @@ class AttendanceController extends Controller
 
                 $attendance->total_break_seconds = $totalBreak;
 
-                // 実働時間（秒）= 出勤〜退勤 - 休憩合計
+                // 実働 = 出勤〜退勤 - 休憩
                 if ($attendance->clock_in_at && $attendance->clock_out_at) {
                     $worked = Carbon::parse($attendance->clock_out_at)->diffInSeconds(Carbon::parse($attendance->clock_in_at));
                     $attendance->work_seconds = max(0, $worked - $totalBreak);
@@ -139,7 +139,7 @@ class AttendanceController extends Controller
     }
 
     /**
-     * 状態とボタン可否フラグを導出
+     * 状態とボタン可否フラグ
      */
     private function deriveStatusAndFlags(?Attendance $attendance): array
     {
@@ -195,36 +195,35 @@ class AttendanceController extends Controller
     public function list(Request $request)
     {
         $tz = 'Asia/Tokyo';
-        $now = \Carbon\Carbon::now($tz);
-        $ym = $request->query('ym', $now->format('Y-m'));  // 例: 2025-09
+        $now = Carbon::now($tz);
+        $ym = $request->query('ym', $now->format('Y-m')); // 例: 2025-09
 
-        // ymバリデーション（雑にフォーマットだけ見る）
+        // ym のフォーマット簡易チェック
         if (!preg_match('/^\d{4}-\d{2}$/', $ym)) {
             $ym = $now->format('Y-m');
         }
 
-        $first = \Carbon\Carbon::createFromFormat('Y-m-d H:i:s', "{$ym}-01 00:00:00", $tz)->startOfDay();
+        $first = Carbon::createFromFormat('Y-m-d H:i:s', "{$ym}-01 00:00:00", $tz)->startOfDay();
         $start = $first->copy()->startOfMonth();
         $end   = $first->copy()->endOfMonth();
 
-        // 当月の自分の勤怠を取得
-        $attendances = \App\Models\Attendance::with('breaks')
-            ->where('user_id', \Illuminate\Support\Facades\Auth::id())
+        // 当月の自分の勤怠
+        $attendances = Attendance::with('breaks')
+            ->where('user_id', Auth::id())
             ->whereBetween('work_date', [$start->toDateString(), $end->toDateString()])
             ->orderBy('work_date')
             ->get()
             ->keyBy('work_date'); // 'Y-m-d' をキーに
 
-        // カレンダー行用（1日〜末日）
+        // 1日〜末日
         $days = [];
         $cursor = $start->copy();
         while ($cursor->lte($end)) {
             $dateStr = $cursor->toDateString(); // Y-m-d
-            $row = [
-                'date' => $cursor->copy(), // Carbon
+            $days[] = [
+                'date' => $cursor->copy(),
                 'attendance' => $attendances->get($dateStr),
             ];
-            $days[] = $row;
             $cursor->addDay();
         }
 
@@ -232,7 +231,7 @@ class AttendanceController extends Controller
         $nextYm = $start->copy()->addMonth()->format('Y-m');
 
         return view('attendance.list', [
-            'tz' => $tz,
+            'tz' => 'Asia/Tokyo',
             'ym' => $ym,
             'days' => $days,
             'prevYm' => $prevYm,
@@ -240,28 +239,75 @@ class AttendanceController extends Controller
         ]);
     }
 
-    public function detail(\App\Models\Attendance $attendance)
+    public function detail(Attendance $attendance, Request $request)
     {
-        // 所有権チェック（他人のレコードは不可）
-        if ($attendance->user_id !== \Illuminate\Support\Facades\Auth::id()) {
+        // 所有権チェック
+        if ($attendance->user_id !== Auth::id()) {
             abort(403);
         }
+
         $attendance->load(['breaks' => function ($q) {
             $q->orderBy('break_start_at');
         }]);
 
-        $pending = \App\Models\AttendanceCorrection::where('attendance_id', $attendance->id)
-            ->where('status', 'pending')->exists();
-
         $tz = 'Asia/Tokyo';
+
+        // この勤怠に「未承認」があるか（req なし時の基準）
+        $pendingAny = AttendanceCorrection::where('attendance_id', $attendance->id)
+            ->where('status', 'pending')
+            ->exists();
+
+        $prefill = [];
+        $readOnly = false;
+        $showPendingMsg = false;
+
+        if ($request->filled('req')) {
+            // req が付いていれば常に閲覧専用。状態はその申請に従う
+            $correctionId = $request->query('req');
+            $correction = AttendanceCorrection::where('id', $correctionId)
+                ->where('attendance_id', $attendance->id)
+                ->where('user_id', Auth::id())
+                ->first();
+
+            $readOnly = true;
+
+            if ($correction) {
+                $fmt = function ($dt) use ($tz) {
+                    if (!$dt) return '';
+                    return Carbon::parse($dt)->setTimezone($tz)->format('H:i');
+                };
+
+                $prefill = [
+                    'in'   => $fmt($correction->clock_in_at),
+                    'out'  => $fmt($correction->clock_out_at),
+                    'b1s'  => $fmt($correction->break1_start_at),
+                    'b1e'  => $fmt($correction->break1_end_at),
+                    'b2s'  => $fmt($correction->break2_start_at),
+                    'b2e'  => $fmt($correction->break2_end_at),
+                    'note' => $correction->note ?? '',
+                ];
+
+                // pending の申請を見ているときだけ赤文言を出す
+                if ($correction->status === 'pending') {
+                    $showPendingMsg = true;
+                }
+            }
+        } else {
+            // req なし：未承認が1件でもあれば閲覧専用＋赤文言
+            $readOnly = $pendingAny;
+            $showPendingMsg = $pendingAny;
+        }
+
         return view('attendance.detail', [
-            'attendance' => $attendance,
-            'tz' => $tz,
-            'pending' => $pending,
+            'attendance'     => $attendance,
+            'tz'             => $tz,
+            'prefill'        => $prefill,
+            'readOnly'       => $readOnly,
+            'showPendingMsg' => $showPendingMsg,
         ]);
     }
 
-    // ----- 以下をクラス末尾あたりに追加（秒→H:MM表示用） -----
+    // 秒→H:MM
     private function secondsToHm(?int $seconds): string
     {
         $seconds = (int)($seconds ?? 0);
@@ -272,11 +318,11 @@ class AttendanceController extends Controller
 
     public function requestCorrection(StoreAttendanceCorrectionRequest $request, Attendance $attendance)
     {
-        if ($attendance->user_id !== \Illuminate\Support\Facades\Auth::id()) {
+        if ($attendance->user_id !== Auth::id()) {
             abort(403);
         }
 
-        // 既に承認待ちがあれば申請不可（FN033）
+        // 既に未承認があれば申請不可
         $hasPending = AttendanceCorrection::where('attendance_id', $attendance->id)
             ->where('status', 'pending')->exists();
         if ($hasPending) {
@@ -288,25 +334,28 @@ class AttendanceController extends Controller
 
         $toDT = function ($hm) use ($date, $tz) {
             if (!$hm) return null;
-            return \Carbon\Carbon::createFromFormat('Y-m-d H:i', "$date $hm", $tz);
+            return Carbon::createFromFormat('Y-m-d H:i', "$date $hm", $tz);
         };
 
-        AttendanceCorrection::create([
+        $correction = AttendanceCorrection::create([
             'user_id' => auth()->id(),
             'attendance_id' => $attendance->id,
             'work_date' => $attendance->work_date,
-            'clock_in_at'  => $toDT($request->input('in')),
-            'clock_out_at' => $toDT($request->input('out')),
-            'break1_start_at' => $toDT($request->input('b1s')),
-            'break1_end_at'   => $toDT($request->input('b1e')),
-            'break2_start_at' => $toDT($request->input('b2s')),
-            'break2_end_at'   => $toDT($request->input('b2e')),
+            'clock_in_at'      => $toDT($request->input('in')),
+            'clock_out_at'     => $toDT($request->input('out')),
+            'break1_start_at'  => $toDT($request->input('b1s')),
+            'break1_end_at'    => $toDT($request->input('b1e')),
+            'break2_start_at'  => $toDT($request->input('b2s')),
+            'break2_end_at'    => $toDT($request->input('b2e')),
             'note' => $request->input('note'),
             'status' => 'pending',
         ]);
 
-        return redirect()->route('attendance.detail', ['attendance' => $attendance->id])
-            ->with('success', '修正申請を受け付けました（承認待ち）。');
+        // 申請直後は、その申請をプレビュー表示（閲覧専用＋赤文言）
+        return redirect()->route('attendance.detail', [
+            'attendance' => $attendance->id,
+            'req' => $correction->id,
+        ])->with('success', '修正申請を受け付けました（承認待ち）。');
     }
 
     // 申請一覧
@@ -327,7 +376,7 @@ class AttendanceController extends Controller
         return view('requests.index', compact('pending', 'approved'));
     }
 
-    // 申請詳細
+    // 申請詳細（必要に応じて使用）
     public function requestsShow(AttendanceCorrection $correction)
     {
         if ($correction->user_id !== Auth::id()) {

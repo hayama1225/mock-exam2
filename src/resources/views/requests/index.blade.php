@@ -3,7 +3,7 @@
 @section('title', '申請一覧')
 
 @push('styles')
-<link rel="stylesheet" href="{{ asset('css/requests-list.css') }}?v=3">
+<link rel="stylesheet" href="{{ asset('css/requests-list.css') }}">
 @endpush
 
 @section('content')
@@ -12,22 +12,19 @@ $userName = auth()->user()->name ?? '';
 @endphp
 
 <main class="main list-main">
-    {{-- タイトル行（vbar＋タイトルを1行で。900px左端に揃え） --}}
     <div class="list-heading">
         <span class="vbar" aria-hidden="true"></span>
         <h1 class="list-title">申請一覧</h1>
     </div>
 
-    {{-- タブ（承認待ち / 承認済み） --}}
     <div class="req-tabs" role="tablist" aria-label="申請の状態で絞り込み">
         <a href="#pending" class="tab-link" id="tab-pending" role="tab" aria-controls="pane-pending">承認待ち</a>
         <a href="#approved" class="tab-link" id="tab-approved" role="tab" aria-controls="pane-approved">承認済み</a>
     </div>
 
-    {{-- 下線（900px / 1px） --}}
     <hr class="req-hr">
 
-    {{-- ===== 承認待ち ===== --}}
+    {{-- 承認待ち --}}
     <section id="pending" class="req-pane" role="tabpanel" aria-labelledby="tab-pending">
         <div class="list-card">
             <table class="att-table" aria-label="承認待ちの申請一覧">
@@ -50,7 +47,9 @@ $userName = auth()->user()->name ?? '';
                         <td>{{ $r->note }}</td>
                         <td>{{ optional($r->created_at)->setTimezone('Asia/Tokyo')?->format('Y/m/d') }}</td>
                         <td class="col-detail">
-                            <a href="{{ route('requests.show', $r->id) }}" class="detail-link">詳細</a>
+                            {{-- req を付けて申請内容をプレビュー --}}
+                            <a href="{{ route('attendance.detail', ['attendance' => ($r->attendance_id ?? $r->attendance?->id), 'req' => $r->id]) }}"
+                                class="detail-link">詳細</a>
                         </td>
                     </tr>
                     @empty
@@ -63,7 +62,7 @@ $userName = auth()->user()->name ?? '';
         </div>
     </section>
 
-    {{-- ===== 承認済み ===== --}}
+    {{-- 承認済み --}}
     <section id="approved" class="req-pane" role="tabpanel" aria-labelledby="tab-approved">
         <div class="list-card">
             <table class="att-table" aria-label="承認済みの申請一覧">
@@ -86,7 +85,9 @@ $userName = auth()->user()->name ?? '';
                         <td>{{ $r->note }}</td>
                         <td>{{ optional($r->created_at)->setTimezone('Asia/Tokyo')?->format('Y/m/d') }}</td>
                         <td class="col-detail">
-                            <a href="{{ route('requests.show', $r->id) }}" class="detail-link">詳細</a>
+                            {{-- req を付けて遷移。detail側で approved はメッセージ非表示にする --}}
+                            <a href="{{ route('attendance.detail', ['attendance' => ($r->attendance_id ?? $r->attendance?->id), 'req' => $r->id]) }}"
+                                class="detail-link">詳細</a>
                         </td>
                     </tr>
                     @empty
@@ -100,7 +101,6 @@ $userName = auth()->user()->name ?? '';
     </section>
 </main>
 
-{{-- タブ切り替え：#pending / #approved で表示を制御、選択中はBold --}}
 <script>
     document.addEventListener('DOMContentLoaded', () => {
         const tabs = document.querySelectorAll('.tab-link');
@@ -111,11 +111,10 @@ $userName = auth()->user()->name ?? '';
             tabs.forEach(a => a.classList.toggle('is-active', a.getAttribute('href') === hash));
             panes.forEach(p => p.classList.toggle('is-active', ('#' + p.id) === hash));
         }
-
         window.addEventListener('hashchange', apply, {
             passive: true
         });
-        apply(); // 初期表示
+        apply();
     });
 </script>
 @endsection
