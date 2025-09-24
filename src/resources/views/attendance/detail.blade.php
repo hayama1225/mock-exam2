@@ -130,5 +130,59 @@
         </div>
 
     </form>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const names = ['in', 'out', 'b1s', 'b1e', 'b2s', 'b2e'];
+            const sel = names.map(n => `input[name="${n}"]`).join(',');
+            const inputs = document.querySelectorAll(sel);
+
+            const normalize = (v) => {
+                if (v == null) return v;
+                v = String(v).trim();
+                if (!v) return v;
+                // 全角 → 半角
+                v = v.replace(/[０-９Ａ-Ｚａ-ｚ：]/g, (ch) => {
+                    const code = ch.charCodeAt(0);
+                    if (ch === '：') return ':';
+                    if (code >= 0xFF10 && code <= 0xFF19) return String.fromCharCode(code - 0xFF10 + 0x30);
+                    if (code >= 0xFF21 && code <= 0xFF3A) return String.fromCharCode(code - 0xFF21 + 0x41);
+                    if (code >= 0xFF41 && code <= 0xFF5A) return String.fromCharCode(code - 0xFF41 + 0x61);
+                    return ch;
+                });
+
+                let h = null,
+                    m = null;
+                const m1 = v.match(/^(\d{1,2}):(\d{1,2})$/);
+                if (m1) {
+                    h = +m1[1];
+                    m = +m1[2];
+                } else if (/^\d{3,4}$/.test(v)) {
+                    if (v.length === 3) {
+                        h = +v[0];
+                        m = +v.slice(1);
+                    } else {
+                        h = +v.slice(0, 2);
+                        m = +v.slice(2);
+                    }
+                } else if (/^\d{1,2}$/.test(v)) {
+                    h = +v;
+                    m = 0;
+                } else {
+                    return v; // 不明な形式は触らない
+                }
+                if (h < 0 || h > 23 || m < 0 || m > 59) return v;
+                return `${String(h).padStart(2,'0')}:${String(m).padStart(2,'0')}`;
+            };
+
+            inputs.forEach(inp => {
+                if (inp.disabled) return;
+                inp.addEventListener('blur', () => {
+                    const nv = normalize(inp.value);
+                    if (nv !== undefined && nv !== null) inp.value = nv;
+                });
+            });
+        });
+    </script>
+
 </div>
 @endsection

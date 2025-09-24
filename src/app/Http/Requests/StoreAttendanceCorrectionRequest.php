@@ -11,6 +11,73 @@ class StoreAttendanceCorrectionRequest extends FormRequest
         return auth()->check();
     }
 
+    /**
+     * 送信値を HH:MM に正規化してから rules() を適用する
+     * 例:
+     *  - "5:3"   -> "05:03"
+     *  - "930"   -> "09:30"
+     *  - "5"     -> "05:00"
+     *  - "５：３" -> "05:03"  (全角→半角)
+     * 範囲外(25:00/07:99等)や不明形式は触らず返し、従来のregexで弾く
+     */
+    protected function prepareForValidation(): void
+    {
+        $fields = ['in', 'out', 'b1s', 'b1e', 'b2s', 'b2e'];
+        $normalized = [];
+
+        foreach ($fields as $f) {
+            $normalized[$f] = $this->normalizeTime($this->input($f));
+        }
+
+        $this->merge($normalized);
+    }
+
+    private function normalizeTime($value): ?string
+    {
+        if ($value === null) return null;
+        $v = trim((string)$value);
+        if ($v === '') return '';
+
+        // 全角英数・コロンを半角へ
+        if (function_exists('mb_convert_kana')) {
+            $v = mb_convert_kana($v, 'na'); // 数字・英字
+        }
+        $v = str_replace('：', ':', $v);
+
+        $h = null;
+        $m = null;
+
+        // 1) H(:)M
+        if (preg_match('/^(\d{1,2}):(\d{1,2})$/', $v, $mch)) {
+            $h = (int)$mch[1];
+            $m = (int)$mch[2];
+        }
+        // 2) 3～4桁 "930"/"0930"
+        elseif (preg_match('/^\d{3,4}$/', $v)) {
+            if (strlen($v) === 3) {
+                $h = (int)$v[0];
+                $m = (int)substr($v, 1, 2);
+            } else {
+                $h = (int)substr($v, 0, 2);
+                $m = (int)substr($v, 2, 2);
+            }
+        }
+        // 3) 1～2桁 "5" -> 05:00
+        elseif (preg_match('/^\d{1,2}$/', $v)) {
+            $h = (int)$v;
+            $m = 0;
+        } else {
+            return $value; // 不明形式は触らない → 従来ルールが弾く
+        }
+
+        // 範囲チェック（24h）
+        if ($h < 0 || $h > 23 || $m < 0 || $m > 59) {
+            return $value; // 触らず返す
+        }
+
+        return sprintf('%02d:%02d', $h, $m);
+    }
+
     public function rules(): array
     {
         return [
@@ -27,10 +94,9 @@ class StoreAttendanceCorrectionRequest extends FormRequest
 
     public function messages(): array
     {
-        // 要件の日本語メッセージ
         return [
             'note.required' => '備考を記入してください',
-            'in.regex' => '時刻はHH:MM形式で入力してください',
+            'in.regex'  => '時刻はHH:MM形式で入力してください',
             'out.regex' => '時刻はHH:MM形式で入力してください',
             'b1s.regex' => '時刻はHH:MM形式で入力してください',
             'b1e.regex' => '時刻はHH:MM形式で入力してください',
@@ -52,7 +118,6 @@ class StoreAttendanceCorrectionRequest extends FormRequest
             $b2s = $this->input('b2s');
             $b2e = $this->input('b2e');
 
-            // 基準日（詳細対象日の 00:00）でDateTime化
             $date = $this->route('attendance')->work_date ?? now('Asia/Tokyo')->toDateString();
             $tz = 'Asia/Tokyo';
             $toDT = function ($hm) use ($date, $tz) {
@@ -72,7 +137,7 @@ class StoreAttendanceCorrectionRequest extends FormRequest
                 $v->errors()->add('out', '出勤時間もしくは退勤時間が不適切な値です');
             }
 
-            // 2) 休憩開始が出勤より前 or 退勤より後
+            // 2) 休憩の妥当性（出勤前/退勤後/逆転）
             foreach ([['s' => $b1sD, 'e' => $b1eD], ['s' => $b2sD, 'e' => $b2eD]] as $pair) {
                 if ($pair['s']) {
                     if ($cin && $pair['s']->lt($cin)) {
@@ -82,11 +147,9 @@ class StoreAttendanceCorrectionRequest extends FormRequest
                         $v->errors()->add('b1s', '休憩時間が不適切な値です');
                     }
                 }
-                // 3) 休憩終了が退勤より後
                 if ($pair['e'] && $cout && $pair['e']->gt($cout)) {
                     $v->errors()->add('b1e', '休憩時間もしくは退勤時間が不適切な値です');
                 }
-                // 開始より終了が前
                 if ($pair['s'] && $pair['e'] && $pair['s']->gte($pair['e'])) {
                     $v->errors()->add('b1e', '休憩時間が不適切な値です');
                 }
