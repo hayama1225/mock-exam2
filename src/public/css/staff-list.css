@@ -1,0 +1,27 @@
+/* スタッフ一覧 専用の上書き。requests-list.css の後に読み込むこと */
+.att-table {
+    table-layout: fixed;
+}
+
+/* 列幅を固定配分にする */
+.att-table th,
+.att-table td {
+    width: 33.3333%;
+}
+
+.att-table thead th {
+    text-align: center;
+}
+
+.att-table .col-name {
+    text-align: left;
+}
+
+.att-table .col-email {
+    text-align: left;
+}
+
+.att-table .col-detail {
+    text-align: center;
+    white-space: nowrap;
+}
