@@ -1,79 +1,138 @@
 @extends('layouts.app')
 
-@section('title', '勤怠修正申請一覧（管理者）')
+@section('title', '申請一覧')
+
+@push('styles')
+<link rel="stylesheet" href="{{ asset('css/requests-list.css') }}">
+@endpush
 
 @section('content')
-<div class="container" style="max-width:1000px;">
-    <h1 class="mb-3" style="font-weight:700;">勤怠修正申請一覧</h1>
+@php
+// 管理者ヘッダーを有効化（レイアウト仕様）
+$isAdminHeader = true;
+$headerLogoUrl = url('/admin/login');
 
-    {{-- ステータス切替タブ --}}
-    <ul class="nav nav-tabs mb-3">
-        <li class="nav-item">
-            <a class="nav-link {{ $status === 'pending' ? 'active' : '' }}"
-                href="{{ route('admin.corrections.list', ['status' => 'pending']) }}">
-                承認待ち
-            </a>
-        </li>
-        <li class="nav-item">
-            <a class="nav-link {{ $status === 'approved' ? 'active' : '' }}"
-                href="{{ route('admin.corrections.list', ['status' => 'approved']) }}">
-                承認済み
-            </a>
-        </li>
-    </ul>
+// コントローラ両対応：
+// 1) $pending / $approved が渡される場合
+// 2) 既存の $status / $requests（Paginator/Collection）が渡される場合
+$listPending = isset($pending) ? $pending : (($status ?? null) === 'pending' ? ($requests ?? collect()) : collect());
+$listApproved = isset($approved) ? $approved : (($status ?? null) === 'approved' ? ($requests ?? collect()) : collect());
+@endphp
 
-    {{-- メッセージ --}}
-    @if(session('status'))
-    <div class="alert alert-success">{{ session('status') }}</div>
-    @endif
-
-    {{-- 一覧 --}}
-    <div class="table-responsive">
-        <table class="table table-striped align-middle">
-            <thead class="table-light">
-                <tr>
-                    <th>申請ID</th>
-                    <th>ユーザー</th>
-                    <th>日付</th>
-                    <th>申請内容</th>
-                    <th>状態</th>
-                    <th>操作</th>
-                </tr>
-            </thead>
-            <tbody>
-                @forelse($requests as $req)
-                <tr>
-                    <td>{{ $req->id }}</td>
-                    <td>{{ $req->attendance->user->name ?? '-' }}</td>
-                    <td>{{ $req->attendance->work_date ?? '-' }}</td>
-                    <td>{{ $req->memo ?? '-' }}</td>
-                    <td>
-                        @if($req->status === 'pending')
-                        <span class="badge bg-warning text-dark">承認待ち</span>
-                        @else
-                        <span class="badge bg-success">承認済み</span>
-                        @endif
-                    </td>
-                    <td>
-                        <a href="{{ route('admin.corrections.show', $req->id) }}"
-                            class="btn btn-sm btn-outline-primary">
-                            詳細
-                        </a>
-                    </td>
-                </tr>
-                @empty
-                <tr>
-                    <td colspan="6" class="text-center text-muted py-4">
-                        申請はありません。
-                    </td>
-                </tr>
-                @endforelse
-            </tbody>
-        </table>
+<main class="main list-main">
+    <div class="list-heading">
+        <span class="vbar" aria-hidden="true"></span>
+        <h1 class="list-title">申請一覧</h1>
     </div>
 
-    {{ $requests->links() }}
+    <div class="req-tabs" role="tablist" aria-label="申請の状態で絞り込み">
+        <a href="#pending" class="tab-link" id="tab-pending" role="tab" aria-controls="pane-pending">承認待ち</a>
+        <a href="#approved" class="tab-link" id="tab-approved" role="tab" aria-controls="pane-approved">承認済み</a>
+    </div>
 
-    <a href="{{ route('admin.attendance.list') }}" class="btn btn-outline-dark mt-3">勤怠一覧へ戻る</a>
-</div>
+    <hr class="req-hr">
+
+    {{-- 承認待ち --}}
+    <section id="pending" class="req-pane" role="tabpanel" aria-labelledby="tab-pending">
+        <div class="list-card">
+            <table class="att-table" aria-label="承認待ちの申請一覧">
+                <thead>
+                    <tr>
+                        <th class="col-state">状態</th>
+                        <th class="col-name">名前</th>
+                        <th class="col-date">対象日時</th>
+                        <th class="col-reason">申請理由</th>
+                        <th class="col-created">申請日時</th>
+                        <th class="col-detail">詳細</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @forelse ($listPending as $r)
+                    @php
+                    $attId = $r->attendance_id ?? $r->attendance?->id;
+                    $workDt = $r->work_date ?? $r->attendance?->work_date;
+                    $userNm = $r->user->name ?? $r->attendance?->user?->name ?? '';
+                    $note = $r->note ?? $r->memo ?? '';
+                    $created = optional($r->created_at)->setTimezone('Asia/Tokyo');
+                    @endphp
+                    <tr>
+                        <td>承認待ち</td>
+                        <td>{{ $userNm }}</td>
+                        <td>{{ \Carbon\Carbon::parse($workDt)->format('Y/m/d') }}</td>
+                        <td>{{ $note }}</td>
+                        <td>{{ $created?->format('Y/m/d') }}</td>
+                        <td class="col-detail">
+                            <a href="{{ url('/admin/attendance/'.$attId).'?req='.$r->id }}" class="detail-link">詳細</a>
+                        </td>
+                    </tr>
+                    @empty
+                    <tr>
+                        <td colspan="6" class="empty">承認待ちの申請はありません。</td>
+                    </tr>
+                    @endforelse
+                </tbody>
+            </table>
+        </div>
+    </section>
+
+    {{-- 承認済み --}}
+    <section id="approved" class="req-pane" role="tabpanel" aria-labelledby="tab-approved">
+        <div class="list-card">
+            <table class="att-table" aria-label="承認済みの申請一覧">
+                <thead>
+                    <tr>
+                        <th class="col-state">状態</th>
+                        <th class="col-name">名前</th>
+                        <th class="col-date">対象日時</th>
+                        <th class="col-reason">申請理由</th>
+                        <th class="col-created">申請日時</th>
+                        <th class="col-detail">詳細</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @forelse ($listApproved as $r)
+                    @php
+                    $attId = $r->attendance_id ?? $r->attendance?->id;
+                    $workDt = $r->work_date ?? $r->attendance?->work_date;
+                    $userNm = $r->user->name ?? $r->attendance?->user?->name ?? '';
+                    $note = $r->note ?? $r->memo ?? '';
+                    $created = optional($r->created_at)->setTimezone('Asia/Tokyo');
+                    @endphp
+                    <tr>
+                        <td>承認済み</td>
+                        <td>{{ $userNm }}</td>
+                        <td>{{ \Carbon\Carbon::parse($workDt)->format('Y/m/d') }}</td>
+                        <td>{{ $note }}</td>
+                        <td>{{ $created?->format('Y/m/d') }}</td>
+                        <td class="col-detail">
+                            <a href="{{ url('/admin/attendance/'.$attId).'?req='.$r->id }}" class="detail-link">詳細</a>
+                        </td>
+                    </tr>
+                    @empty
+                    <tr>
+                        <td colspan="6" class="empty">承認済みの申請はありません。</td>
+                    </tr>
+                    @endforelse
+                </tbody>
+            </table>
+        </div>
+    </section>
+</main>
+
+<script>
+    document.addEventListener('DOMContentLoaded', () => {
+        const tabs = document.querySelectorAll('.tab-link');
+        const panes = document.querySelectorAll('.req-pane');
+
+        function apply() {
+            const hash = (location.hash || '#pending');
+            tabs.forEach(a => a.classList.toggle('is-active', a.getAttribute('href') === hash));
+            panes.forEach(p => p.classList.toggle('is-active', ('#' + p.id) === hash));
+        }
+        window.addEventListener('hashchange', apply, {
+            passive: true
+        });
+        apply();
+    });
+</script>
 @endsection
