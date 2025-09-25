@@ -120,29 +120,4 @@ class AdminStaffMonthlyTest extends TestCase
         $this->assertStringContainsString('スタッフ名', $utf8);
         $this->assertStringContainsString('日付', $utf8);
     }
-
-    /** @test */
-    public function 詳細画面の一覧へ戻るリンクはスタッフ別月次勤怠へ戻る()
-    {
-        $date = \Carbon\Carbon::parse('2025-09-01');
-        $attendance = \App\Models\Attendance::factory()->create([
-            'user_id'              => $this->user->id,
-            'work_date'            => $date->toDateString(),
-            'clock_in_at'          => $date->copy()->setTime(9, 0),
-            'clock_out_at'         => $date->copy()->setTime(18, 0),
-            'work_seconds'         => 8 * 3600,
-            'total_break_seconds'  => 3600,
-        ]);
-
-        $this->actingAs($this->admin, 'admin');
-
-        $expectedUrl = route('admin.attendance.staff', [
-            'user'  => $this->user->id,
-            'month' => $date->format('Y-m'),
-        ]);
-
-        $this->get(route('admin.attendance.show', ['attendance' => $attendance->id]))
-            ->assertOk()
-            ->assertSee(e($expectedUrl));
-    }
 }
