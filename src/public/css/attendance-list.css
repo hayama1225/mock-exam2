@@ -172,3 +172,47 @@
     pointer-events: none;
     text-decoration: none;
 }
+
+/* --- ヘッダー直下の白帯対策（背景統一） --- */
+body {
+    background: #EFEFF1;
+}
+
+.list-heading,
+.list-nav {
+    background: transparent;
+}
+
+/* ===== 管理者：スタッフ別勤怠 CSV（このページ専用） ===== */
+.admin-staff #staff-csv {
+    width: 900px;
+    /* att-table と同幅 → 右端が揃う */
+    margin: 10px auto 0;
+    /* 枠外・下に配置（中央カラム基準） */
+    text-align: right;
+    /* 右寄せ */
+}
+
+.admin-staff #staff-csv form {
+    display: inline;
+    /* 共通の form{display:block;width:100%} を無効化 */
+    width: auto !important;
+    margin: 0;
+}
+
+.admin-staff #staff-csv .btn-csv {
+    display: inline-block;
+    padding: 10px 18px;
+    background: #000 !important;
+    /* 黒背景 */
+    color: #fff !important;
+    /* 白文字 */
+    border: 1px solid #000 !important;
+    border-radius: 8px;
+    text-decoration: none;
+    cursor: pointer;
+}
+
+.admin-staff #staff-csv .btn-csv:hover {
+    opacity: .85;
+}
