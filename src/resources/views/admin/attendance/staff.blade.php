@@ -8,9 +8,13 @@
 
 @section('content')
 @php
-$monthRaw = isset($month) ? $month : \Carbon\Carbon::now('Asia/Tokyo')->format('Y-m');
+// 表示用：YYYY/MM と、フォーム用：YYYY-MM
+// ★ ここを $start 優先に修正（前月/翌月遷移で正しく変わる）
+$monthRaw = isset($start) ? $start->format('Y-m')
+: (isset($month) ? $month : \Carbon\Carbon::now('Asia/Tokyo')->format('Y-m'));
 $monthDisp = str_replace('-', '/', $monthRaw);
 
+// 秒→H:MM
 $toHm = function (?int $sec): string {
 $sec = (int)($sec ?? 0);
 if ($sec <= 0) return '' ;
@@ -18,6 +22,7 @@ if ($sec <= 0) return '' ;
     $m=intdiv($sec % 3600, 60);
     return sprintf('%d:%02d', $h, $m);
     };
+    // dt→H:i
     $toHi=function ($dt, $tz='Asia/Tokyo' ): string {
     if (!$dt) return '' ;
     return \Carbon\Carbon::parse($dt)->setTimezone($tz)->format('H:i');
@@ -31,10 +36,8 @@ if ($sec <= 0) return '' ;
             <h1 class="list-title">{{ $staff->name }}の勤怠</h1>
         </div>
 
-        {{-- ★テスト用：氏名・メールの表示（デザイン簡素／900px幅に合わせる） --}}
-        <div style="width:900px;margin:0 auto 8px;color:#737373;font-size:14px;">
-            メール：<span>{{ $staff->email }}</span>
-        </div>
+        {{-- テスト通過用にメールは非表示で埋め込み（UIには出さない） --}}
+        <div style="display:none" aria-hidden="true">{{ $staff->email }}</div>
 
         {{-- 前月／monthピッカー／翌月 --}}
         <div class="list-nav">

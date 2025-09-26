@@ -62,7 +62,8 @@ $listApproved = isset($approved) ? $approved : (($status ?? null) === 'approved'
                         <td>{{ $note }}</td>
                         <td>{{ $created?->format('Y/m/d') }}</td>
                         <td class="col-detail">
-                            <a href="{{ url('/admin/attendance/'.$attId).'?req='.$r->id }}" class="detail-link">詳細</a>
+                            {{-- 要件どおりの承認画面へ遷移 --}}
+                            <a href="{{ route('admin.corrections.show', ['correction' => $r->id]) }}" class="detail-link">詳細</a>
                         </td>
                     </tr>
                     @empty
@@ -105,7 +106,7 @@ $listApproved = isset($approved) ? $approved : (($status ?? null) === 'approved'
                         <td>{{ $note }}</td>
                         <td>{{ $created?->format('Y/m/d') }}</td>
                         <td class="col-detail">
-                            <a href="{{ url('/admin/attendance/'.$attId).'?req='.$r->id }}" class="detail-link">詳細</a>
+                            <a href="{{ route('admin.corrections.show', ['correction' => $r->id]) }}" class="detail-link">詳細</a>
                         </td>
                     </tr>
                     @empty

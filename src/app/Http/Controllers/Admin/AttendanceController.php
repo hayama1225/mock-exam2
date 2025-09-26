@@ -6,9 +6,9 @@ use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use App\Models\Attendance;
 use App\Models\AttendanceBreak;
+use App\Models\User;
 use Carbon\Carbon;
 use App\Http\Requests\Admin\Attendance\UpdateAttendanceRequest;
-use App\Models\User;
 
 class AttendanceController extends Controller
 {
@@ -41,7 +41,7 @@ class AttendanceController extends Controller
         // ③ キーワード（ユーザー名/メール）
         $q = trim((string)$request->input('q', ''));
 
-        // ④ 一覧データは「日付で絞る」ように変更（前日/翌日で行が変わる）
+        // ④ 一覧データは「日付で絞る」
         $attendances = Attendance::with(['user'])
             ->whereDate('work_date', $cursor->toDateString())
             ->when($q !== '', function ($query) use ($q) {
@@ -50,11 +50,10 @@ class AttendanceController extends Controller
                         ->orWhere('email', 'like', "%{$q}%");
                 });
             })
-            // 同一日付のみなので work_date の降順は実質同値だが、既存の並び順を踏襲
             ->orderByDesc('work_date')
             ->orderBy('user_id')
             ->paginate(20)
-            ->withQueryString(); // ← ?date / ?month / ?q を引き回す
+            ->withQueryString();
 
         return view('admin.attendance.index', compact('attendances', 'start', 'prevMonth', 'nextMonth', 'q'));
     }
@@ -85,11 +84,11 @@ class AttendanceController extends Controller
 
         $date = Carbon::parse($attendance->work_date)->format('Y-m-d');
 
-        // 入退勤
+        // 入退勤（FormRequestでH:i保証済み）
         $in  = Carbon::createFromFormat('Y-m-d H:i', $date . ' ' . $request->input('clock_in'));
         $out = Carbon::createFromFormat('Y-m-d H:i', $date . ' ' . $request->input('clock_out'));
 
-        // 休憩（配列を正規化：空行は無視）
+        // 休憩（空行は無視）
         $breaksInput = collect($request->input('breaks', []))
             ->filter(function ($row) {
                 $s = $row['start'] ?? null;
@@ -109,7 +108,7 @@ class AttendanceController extends Controller
             return $carry + $b['end']->diffInSeconds($b['start']);
         }, 0);
 
-        // 勤務秒（マイナスにならないようガード）
+        // 勤務秒
         $workSeconds = max(0, $out->diffInSeconds($in) - $totalBreakSeconds);
 
         // 保存：勤怠本体
@@ -119,10 +118,10 @@ class AttendanceController extends Controller
             'status'              => 1,
             'total_break_seconds' => $totalBreakSeconds,
             'work_seconds'        => $workSeconds,
-            'note'                => $request->input('note'),
+            'note'                => $request->input('note'), // 備考も保存
         ]);
 
-        // 既存休憩は一旦削除して登録し直す（少数なので単純化）
+        // 既存休憩リセット→再作成
         AttendanceBreak::where('attendance_id', $attendance->id)->delete();
         foreach ($breaksInput as $b) {
             AttendanceBreak::create([
@@ -132,25 +131,21 @@ class AttendanceController extends Controller
             ]);
         }
 
-        // 備考は今回は未保存（DBにカラムが無いため）。後続でカラム追加予定。
-
         return redirect()
-            ->route('admin.attendance.show', ['attendance' => $attendance->id]) // ← 明示的にIDで渡す
+            ->route('admin.attendance.show', ['attendance' => $attendance->id])
             ->with('status', '勤怠を修正しました');
     }
 
     /**
      * スタッフ別 月次勤怠一覧
-     * 画面要件: FN043（一覧）/FN044（前月・翌月切替）/FN046（詳細遷移）
      */
     public function staffMonthly(Request $request, int $user)
     {
         $tz = 'Asia/Tokyo';
 
-        // 対象スタッフ
         $staff = User::select('id', 'name', 'email')->findOrFail($user);
 
-        // ?month=YYYY-MM（不正は当月にフォールバック）
+        // ?month=YYYY-MM
         $month = (string)$request->query('month', '');
         try {
             $cursor = $month
@@ -171,9 +166,9 @@ class AttendanceController extends Controller
             ->whereBetween('work_date', [$start->toDateString(), $end->toDateString()])
             ->orderBy('work_date')
             ->get()
-            ->keyBy('work_date'); // 'YYYY-MM-DD' => Attendance
+            ->keyBy('work_date');
 
-        // 1日〜末日までの行データ
+        // 1日〜末日行
         $days = [];
         $c = $start->copy();
         while ($c->lte($end)) {
@@ -185,7 +180,7 @@ class AttendanceController extends Controller
             $c->addDay();
         }
 
-        // ▼ 追加：月サマリー
+        // 月サマリー（必要なら表示に使用）
         $workedSeconds = (int)$attendances->sum('work_seconds');
         $breakSeconds  = (int)$attendances->sum('total_break_seconds');
         $workedDays    = $attendances->filter(fn($a) => !empty($a->clock_in_at))->count();
@@ -202,12 +197,12 @@ class AttendanceController extends Controller
             'nextMonth' => $nextMonth,
             'days'      => $days,
             'summary'   => $summary,
+            'month'     => $start->format('Y-m'), // ← ビューの表示月に使用
         ]);
     }
 
     /**
-     * CSV出力（FN045）
-     * クエリ ?month=YYYY-MM を解釈し、対象月の当該スタッフ勤怠をCSVで返す
+     * CSV出力
      */
     public function staffMonthlyCsv(Request $request, int $user)
     {
@@ -236,7 +231,6 @@ class AttendanceController extends Controller
         return response()->streamDownload(function () use ($records, $staff) {
             $out = fopen('php://output', 'w');
 
-            // 出力時にUTF-8→SJIS変換するヘルパ
             $fput = function ($row) use ($out) {
                 fputcsv($out, array_map(function ($v) {
                     return mb_convert_encoding($v ?? '', 'SJIS-win', 'UTF-8');
@@ -266,9 +260,6 @@ class AttendanceController extends Controller
         ]);
     }
 
-    /**
-     * 秒数を H:MM 形式に変換する
-     */
     private function secondsToHm(?int $seconds): string
     {
         $s = (int) max(0, $seconds ?? 0);
