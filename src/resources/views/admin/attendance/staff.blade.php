@@ -3,7 +3,7 @@
 @section('title', '月次勤怠一覧（スタッフ別）')
 
 @push('styles')
-<link rel="stylesheet" href="{{ asset('css/attendance-list.css') }}">
+<link rel="stylesheet" href="{{ asset('css/attendance-list.css') }}?v=20250927-2">
 @endpush
 
 @section('content')
@@ -32,7 +32,7 @@ if ($sec <= 0) return '' ;
     <main class="main list-main admin-staff">
         {{-- タイトル --}}
         <div class="list-heading">
-            <span class="vbar" aria-hidden="true"></span>
+            <span class="page-stick" aria-hidden="true"></span>
             <h1 class="list-title">{{ $staff->name }}の勤怠</h1>
         </div>
 

@@ -246,6 +246,7 @@ class AttendanceController extends Controller
             abort(403);
         }
 
+        // 休憩は開始時刻で並べる
         $attendance->load(['breaks' => function ($q) {
             $q->orderBy('break_start_at');
         }]);
@@ -256,6 +257,12 @@ class AttendanceController extends Controller
         $pendingAny = AttendanceCorrection::where('attendance_id', $attendance->id)
             ->where('status', 'pending')
             ->exists();
+
+        // H:i に整形するクロージャ
+        $fmt = function ($dt) use ($tz) {
+            if (!$dt) return '';
+            return Carbon::parse($dt)->setTimezone($tz)->format('H:i');
+        };
 
         $prefill = [];
         $readOnly = false;
@@ -272,11 +279,6 @@ class AttendanceController extends Controller
             $readOnly = true;
 
             if ($correction) {
-                $fmt = function ($dt) use ($tz) {
-                    if (!$dt) return '';
-                    return Carbon::parse($dt)->setTimezone($tz)->format('H:i');
-                };
-
                 $prefill = [
                     'in'   => $fmt($correction->clock_in_at),
                     'out'  => $fmt($correction->clock_out_at),
@@ -296,6 +298,30 @@ class AttendanceController extends Controller
             // req なし：未承認が1件でもあれば閲覧専用＋赤文言
             $readOnly = $pendingAny;
             $showPendingMsg = $pendingAny;
+
+            // ★★ ここが今回のUX改善ポイント ★★
+            // 申請コンテキストではない通常の詳細表示では、
+            // 実際の打刻済みデータで初期値を埋める（一覧と同じ中身をそのまま編集できる）
+            $prefill = [
+                'in'   => $fmt($attendance->clock_in_at),
+                'out'  => $fmt($attendance->clock_out_at),
+                'note' => $attendance->note ?? '',
+                'b1s'  => '',
+                'b1e'  => '',
+                'b2s'  => '',
+                'b2e'  => '',
+            ];
+
+            // 休憩は開始時刻昇順で最大2件だけマッピング
+            $breaks = ($attendance->breaks ?? collect())->values();
+            if (isset($breaks[0])) {
+                $prefill['b1s'] = $fmt($breaks[0]->break_start_at ?? null);
+                $prefill['b1e'] = $fmt($breaks[0]->break_end_at   ?? null);
+            }
+            if (isset($breaks[1])) {
+                $prefill['b2s'] = $fmt($breaks[1]->break_start_at ?? null);
+                $prefill['b2e'] = $fmt($breaks[1]->break_end_at   ?? null);
+            }
         }
 
         return view('attendance.detail', [

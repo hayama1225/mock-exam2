@@ -22,7 +22,6 @@ class RegistrationRequest extends FormRequest
 
     public function messages(): array
     {
-        // ★評価対象なので絶対にこの文言に固定
         return [
             'name.required'     => 'お名前を入力してください',
             'email.required'    => 'メールアドレスを入力してください',

@@ -5,16 +5,15 @@ namespace App\Http\Controllers\Auth;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Auth\LoginRequest;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Contracts\Auth\MustVerifyEmail;
 
 class LoginController extends Controller
 {
     public function create()
     {
-        // Blade があればビューを返す
         if (view()->exists('auth.login')) {
             return view('auth.login');
         }
-        // 仮表示（Blade未作成時用）
         return response('login page', 200);
     }
 
@@ -27,7 +26,8 @@ class LoginController extends Controller
 
             $user = \Illuminate\Support\Facades\Auth::user();
 
-            if (!$user->hasVerifiedEmail()) {
+            // ★変更：型を判定してからメソッドを呼ぶ（IDEも静的に理解できる）
+            if ($user instanceof MustVerifyEmail && !$user->hasVerifiedEmail()) {
                 // 未認証なら再送して誘導
                 $user->sendEmailVerificationNotification();
                 return redirect()->route('verification.notice')
@@ -49,7 +49,6 @@ class LoginController extends Controller
         $request->session()->invalidate();
         $request->session()->regenerateToken();
 
-        // ログアウト後はログイン画面へ
         return redirect()->route('login');
     }
 }

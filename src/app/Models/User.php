@@ -7,10 +7,17 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Laravel\Sanctum\HasApiTokens;
+use Illuminate\Auth\MustVerifyEmail as MustVerifyEmailTrait;
 
+/**
+ * @method bool hasVerifiedEmail()
+ * @method void sendEmailVerificationNotification()
+ */
 class User extends Authenticatable implements MustVerifyEmail
 {
     use HasApiTokens, Notifiable, HasFactory;
+    // ★ 追加：メール認証の実装（これが無いとメソッド未定義）
+    use MustVerifyEmailTrait;
 
     // timestampsは使わない
     public $timestamps = false;

@@ -6,7 +6,7 @@
     padding: 60px 0 64px;
 }
 
-/* タイトル行（900px左端に揃える：vbar＋タイトルを1行） */
+/* タイトル行（900px左端に揃える：page-stick＋タイトルを1行） */
 .list-heading {
     width: 900px;
     margin: 60px auto 16px;
@@ -14,14 +14,6 @@
     display: flex;
     align-items: center;
     gap: 21px;
-}
-
-.vbar {
-    width: 8px;
-    height: 40px;
-    background: #000;
-    border-radius: 4px;
-    display: inline-block;
 }
 
 .list-title {

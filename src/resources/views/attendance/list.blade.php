@@ -28,9 +28,9 @@ if ($sec <= 0) return '' ;
     @endphp
 
     <main class="main list-main">
-        {{-- タイトル行（vbar＋タイトルを1行で。900px左端に揃え） --}}
+        {{-- タイトル行（page-stick＋タイトルを1行で。900px左端に揃え） --}}
         <div class="list-heading">
-            <span class="vbar" aria-hidden="true"></span>
+            <span class="page-stick" aria-hidden="true"></span>
             <h1 class="list-title">勤怠一覧</h1>
         </div>
 

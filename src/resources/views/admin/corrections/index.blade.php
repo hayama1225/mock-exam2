@@ -21,7 +21,7 @@ $listApproved = isset($approved) ? $approved : (($status ?? null) === 'approved'
 
 <main class="main list-main">
     <div class="list-heading">
-        <span class="vbar" aria-hidden="true"></span>
+        <span class="page-stick" aria-hidden="true"></span>
         <h1 class="list-title">申請一覧</h1>
     </div>
 

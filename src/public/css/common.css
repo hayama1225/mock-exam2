@@ -59,3 +59,26 @@
     padding: 0;
     cursor: pointer;
 }
+
+.form-error {
+    color: #D32F2F;
+    font-size: 14px;
+    line-height: 1.4;
+    margin-top: 8px;
+    font-weight: 700;
+}
+
+/* ===== 共通：タイトル左の黒い縦棒（角丸なし） ===== */
+/* 今後は .page-stick を正とし、.vbar は互換エイリアス */
+.page-stick,
+.vbar {
+    width: 8px;
+    height: 40px;
+    background: #000;
+    border: none;
+    border-radius: 0;
+    transform: none;
+    display: inline-block;
+    flex: 0 0 8px;
+    /* 予期せぬ伸縮防止 */
+}

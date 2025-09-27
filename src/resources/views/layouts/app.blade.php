@@ -5,10 +5,11 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <link rel="stylesheet" href="{{ asset('css/sanitaze.css') }}">
-    <link rel="stylesheet" href="{{ asset('css/common.css') }}">
+    <link rel="stylesheet" href="{{ asset('css/common.css') }}?v=20250927-4">
     @stack('styles')
     <title>@yield('title', 'COACHTECH')</title>
 </head>
+
 
 <body>
     <header class="site-header">

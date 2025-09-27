@@ -15,14 +15,6 @@
     /* vbarとタイトルの間隔 */
 }
 
-.vbar {
-    width: 8px;
-    height: 40px;
-    background: #000;
-    border-radius: 4px;
-    display: inline-block;
-}
-
 .list-title {
     margin: 0;
     font-weight: 700;
@@ -215,4 +207,15 @@ body {
 
 .admin-staff #staff-csv .btn-csv:hover {
     opacity: .85;
+}
+
+.list-heading .page-stick {
+    width: 8px;
+    height: 40px;
+    background: #000;
+    border: none;
+    border-radius: 0;
+    transform: none;
+    display: inline-block;
+    flex: 0 0 8px;
 }
