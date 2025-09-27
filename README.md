@@ -17,8 +17,12 @@ docker compose up -d --build
 ```bash
 docker compose exec php bash
 ```
+※次のcd /var/wwwは必要ならば
 ```bash
 cd /var/www
+```
+```bash
+code .
 ```
 ### 3) 依存インストール
 ```bash
@@ -39,7 +43,7 @@ php artisan migrate --seed
 ```bash
 php artisan db:seed --class=DummyDataSeeder
 ```
-### 7) ストレージ公開（画像表示に必須）
+### 7) ストレージ公開（画像表示に必須）※今回は不要です
 ```bash
 php artisan storage:link
 ```
