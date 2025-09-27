@@ -77,6 +77,17 @@ password123
 ```
 
 - ユーザーログイン：http://localhost/login
+※例として記載。会員登録の際、よければ使ってください。
+```bash
+user1
+```
+```bash
+user1@example.com
+```
+```bash
+password123
+```
+
 - phpMyAdmin：http://localhost:8080/
 - MailHog：http://localhost:8025/
 
