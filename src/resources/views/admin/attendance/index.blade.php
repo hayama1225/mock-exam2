@@ -164,10 +164,11 @@ if ($sec <= 0) return '' ;
                 if (!inp.value) return;
                 const url = new URL("{{ route('admin.attendance.list') }}", window.location.origin);
                 url.searchParams.set('date', inp.value);
-                url.searchParams.set('month', inp.value.slice(0, 7)); // 既存月ベース取得の維持
-                @if(!empty($q))
-                url.searchParams.set('q', @json($q));
-                @endif
+                url.searchParams.set('month', inp.value.slice(0, 7));
+                const qServer = @json($q ?? null);
+                if (qServer) {
+                    url.searchParams.set('q', qServer);
+                }
                 window.location.href = url.toString();
             });
         });

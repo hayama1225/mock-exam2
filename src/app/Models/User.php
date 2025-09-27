@@ -16,7 +16,6 @@ use Illuminate\Auth\MustVerifyEmail as MustVerifyEmailTrait;
 class User extends Authenticatable implements MustVerifyEmail
 {
     use HasApiTokens, Notifiable, HasFactory;
-    // ★ 追加：メール認証の実装（これが無いとメソッド未定義）
     use MustVerifyEmailTrait;
 
     // timestampsは使わない
@@ -26,7 +25,6 @@ class User extends Authenticatable implements MustVerifyEmail
         'name',
         'email',
         'password',
-        // 将来の管理者判定用。今は未使用でもOK（ダミーデータ要件に備える）
         'is_admin',
         'email_verified_at',
         'remember_token',

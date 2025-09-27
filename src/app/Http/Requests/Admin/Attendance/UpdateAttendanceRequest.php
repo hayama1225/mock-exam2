@@ -9,7 +9,7 @@ class UpdateAttendanceRequest extends FormRequest
 {
     public function authorize(): bool
     {
-        return true; // adminミドルウェアで保護済み
+        return true;
     }
 
     public function rules(): array
