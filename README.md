@@ -21,9 +21,6 @@ docker compose exec php bash
 ```bash
 cd /var/www
 ```
-```bash
-code .
-```
 ### 3) 依存インストール
 ```bash
 composer install
@@ -51,7 +48,11 @@ php artisan storage:link
 ```bash
 exit
 ```
-### 9) 補足
+### 9) Visual Studio Code起動
+```bash
+code .
+```
+### 10) 補足
 #### DBリセットしたいとき
 ```bash
 docker compose exec php php artisan migrate:fresh --seed
