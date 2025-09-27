@@ -63,8 +63,7 @@ SELECT COUNT(*) breaks FROM attendance_breaks;
 ```
 
 ### URL
-管理者ログイン：http://localhost/admin/login
-メールアドレス：
+- 管理者ログイン：http://localhost/admin/login
 ```bash
 admin@example.com
 ```
@@ -72,9 +71,9 @@ admin@example.com
 password123
 ```
 
-ユーザーログイン：http://localhost/login
-phpMyAdmin：http://localhost:8080/
-MailHog：http://localhost:8025/
+- ユーザーログイン：http://localhost/login
+- phpMyAdmin：http://localhost:8080/
+- MailHog：http://localhost:8025/
 
 #### ※windowsユーザーへ
 #### 権限エラーが起こった場合は、PHPコンテナ内で以下のコマンドが実行
